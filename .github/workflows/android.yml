@@ -4,6 +4,9 @@ on:
     paths: ['android/**', '.github/workflows/android.yml']
   pull_request:
     paths: ['android/**', '.github/workflows/android.yml']
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -27,4 +30,3 @@ jobs:
           name: dershane-development-apk
           path: android/app/build/outputs/apk/debug/*.apk
           retention-days: 5
-# Debug only. No Play Store release, production backend or real-student approval.

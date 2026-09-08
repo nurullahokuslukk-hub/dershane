@@ -3,10 +3,12 @@ import {readFileSync,mkdirSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {Store} from './store.ts';
+import {Academics} from './academics.ts';
 import {Fault,check,str,keys} from './domain.ts';
 const web=resolve(dirname(fileURLToPath(import.meta.url)),'../../web');
-const assets:Record<string,[string,string]>={'/':['index.html','text/html'],'/app.js':['app.js','text/javascript'],'/client.js':['client.js','text/javascript'],'/style.css':['style.css','text/css']};
+const assets:Record<string,[string,string]>={'/':['index.html','text/html'],'/app.js':['app.js','text/javascript'],'/client.js':['client.js','text/javascript'],'/style.css':['style.css','text/css'],'/academic-ui.js':['academic-ui.js','text/javascript']};
 export function app(store:Store,options:{origin?:string;loginLimit?:number}={}){
+ const academic=new Academics(store);
  const rates=new Map<string,{n:number;until:number}>();
  const server=createServer(async(req,res)=>{
   const origin=options.origin??'http://127.0.0.1:3100',requestId=crypto.randomUUID();
@@ -15,7 +17,7 @@ export function app(store:Store,options:{origin?:string;loginLimit?:number}={}){
   try{
    check(req.headers.host===new URL(origin).host,403,'HOST_NOT_ALLOWED');const path=new URL(req.url??'/',origin).pathname,method=req.method??'GET';
    if(method==='GET'&&assets[path]){const[file,type]=assets[path];res.setHeader('Content-Type',type+'; charset=utf-8');return res.end(readFileSync(resolve(web,file)));}
-   if(path==='/health'&&method==='GET')return send(200,{status:'ok',mode:'local-development',version:'0.1.0-dev'});
+   if(path==='/health'&&method==='GET')return send(200,{status:'ok',mode:'local-development',version:'0.2.0-dev'});
    const mutate=!['GET','HEAD'].includes(method);let b:any={};
    if(mutate){if(req.headers.origin)check(req.headers.origin===origin,403,'ORIGIN_NOT_ALLOWED');check((req.headers['content-type']??'').split(';')[0]==='application/json',415,'JSON_REQUIRED');check(Number(req.headers['content-length']??0)<=131072,413,'BODY_TOO_LARGE');const chunks:Buffer[]=[];let size=0;for await(const part of req){size+=part.length;check(size<=131072,413,'BODY_TOO_LARGE');chunks.push(part);}try{b=JSON.parse(Buffer.concat(chunks).toString());}catch{throw new Fault(400,'INVALID_JSON');}}
    if(path==='/api/v1/auth/login'&&method==='POST'){
@@ -32,6 +34,8 @@ export function app(store:Store,options:{origin?:string;loginLimit?:number}={}){
    if(path==='/api/v1/consent'&&method==='POST')return send(200,store.consent(a,b));
    if(path==='/api/v1/devices'&&method==='POST'){keys(b,['installationId']);return send(200,store.device(a,b.installationId));}
    if(path==='/api/v1/usage/batches'&&method==='POST')return send(200,store.batch(a,b));
+   const academicMatch=path.match(/^\/api\/v1\/students\/([a-f0-9-]+)\/(academics|exams|tasks|sessions)(?:\/([a-f0-9-]+)\/(transition|attendance))?$/);
+   if(academicMatch){const[,id,action,objectId,transition]=academicMatch;if(method==='GET'&&action==='academics'&&!objectId)return send(200,academic.profile(a,id));if(method==='POST'){if(action==='exams'&&!objectId)return send(200,academic.exam(a,id,b));if(action==='tasks'&&!objectId)return send(200,academic.createTask(a,id,b));if(action==='tasks'&&objectId&&transition==='transition')return send(200,academic.transitionTask(a,id,objectId,b));if(action==='sessions'&&!objectId)return send(200,academic.createSession(a,id,b));if(action==='sessions'&&objectId&&transition==='attendance')return send(200,academic.attendance(a,id,objectId,b));}}
    const match=path.match(/^\/api\/v1\/students\/([a-f0-9-]+)(?:\/(records|notes|approve))?$/);
    if(match){const id=match[1],action=match[2];if(!action&&method==='GET')return send(200,store.profile(a,id));if(action==='records'&&method==='POST')return send(200,store.record(a,id,b));if(action==='notes'&&method==='POST'){keys(b,['body']);return send(201,store.note(a,id,b.body));}if(action==='approve'&&method==='POST'){keys(b,[]);return send(200,store.approve(a,id));}}
    throw new Fault(404,'NOT_FOUND');
