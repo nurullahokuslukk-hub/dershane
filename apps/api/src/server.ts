@@ -17,7 +17,7 @@ export function app(store:Store,options:{origin?:string;loginLimit?:number}={}){
   try{
    check(req.headers.host===new URL(origin).host,403,'HOST_NOT_ALLOWED');const path=new URL(req.url??'/',origin).pathname,method=req.method??'GET';
    if(method==='GET'&&assets[path]){const[file,type]=assets[path];res.setHeader('Content-Type',type+'; charset=utf-8');return res.end(readFileSync(resolve(web,file)));}
-   if(path==='/health'&&method==='GET')return send(200,{status:'ok',mode:'local-development',version:'0.1.0-dev'});
+   if(path==='/health'&&method==='GET')return send(200,{status:'ok',mode:'local-development',version:'0.2.0-dev'});
    const mutate=!['GET','HEAD'].includes(method);let b:any={};
    if(mutate){if(req.headers.origin)check(req.headers.origin===origin,403,'ORIGIN_NOT_ALLOWED');check((req.headers['content-type']??'').split(';')[0]==='application/json',415,'JSON_REQUIRED');check(Number(req.headers['content-length']??0)<=131072,413,'BODY_TOO_LARGE');const chunks:Buffer[]=[];let size=0;for await(const part of req){size+=part.length;check(size<=131072,413,'BODY_TOO_LARGE');chunks.push(part);}try{b=JSON.parse(Buffer.concat(chunks).toString());}catch{throw new Fault(400,'INVALID_JSON');}}
    if(path==='/api/v1/auth/login'&&method==='POST'){

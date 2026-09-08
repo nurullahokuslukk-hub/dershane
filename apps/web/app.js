@@ -10,7 +10,7 @@ let loadEpoch=0;
 let academicData=null,academicError='',examType=null,examId=null;
 async function getAcademics(id){try{return {data:await api('/students/'+id+'/academics'),error:''};}catch(e){return {data:null,error:e.message};}}
 async function reloadAcademics(){const id=selected,epoch=loadEpoch;const result=await getAcademics(id);if(epoch!==loadEpoch||id!==selected)return;academicData=result.data;academicError=result.error;content();}
-function navigate(view,options={}){tab=view;if('examType'in options)examType=options.examType;if('examId'in options)examId=options.examId;content();}
+function navigate(view,options={}){tab=view;if('examType'in options)examType=options.examType;if('examId'in options)examId=options.examId;content();document.querySelector('.workspace')?.scrollTo(0,0);}
 function openRecord(){navigate('academic');if(['student','teacher'].includes(me.role))recordForm();}
 
 let me,students=[],profile=null,selected='',tab='usage',device='',date='',category='all';
