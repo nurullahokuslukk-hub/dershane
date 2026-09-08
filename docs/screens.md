@@ -1,14 +1,24 @@
-# Ekran envanteri
+# Ekranlar · v0.2
 
-## Web mevcut
-Giriş/hata/çıkış; yetkili öğrenci listesi/ad-sınıf arama; profil; telefon günü/cihazı/kategori filtresi ve azalan süre listesi; veri yok/kapalı izin; akademik kayıt listesi; çalışma/soru/günlük formu; öğretmen deneme/ödev/etüt formu; rehberlik özel not; admin pending onayı; gizlilik dialog'u. Mobil390px ve masaüstü tasarım. Gösterimler sentetik geliştirme verisidir.
+## Tasarım sistemi
+Sabit açık tema; beyaz/açık gri/lila yüzeyler, geniş yuvarlatılmış kartlar, hafif gölgeler, özgün 24px/1.7 stroke çizgi ikonları. Referansların görsel yönü kullanıldı; Iconly'nin ücretli dosyaları, Threads logosu ve fotoğraflar kopyalanmadı. 16px gövde, en az 14px küçük metin, 44px web etkileşim hedefi; görünür klavye odağı ve reduced-motion.
 
-## Android kaynak kapsamı
-Sunucu/kurum/kod/parola girişi; Bugün başlangıcı; online çalışma ekleme; paylaşım açıklaması,onay/ret/iptal; OS kullanım erişimi; sync durumu; çıkış. APK build başarısı gerçek cihaz doğrulaması değildir.
+Mobilde alt menü ayrı alan ayırır; içerik onun arkasında gizlenmez. İçerik bölümü kaydırılabilir. Masaüstünde sol menü vardır. Grafik değerleri metin alternatifiyle sunulur; yalnız renk kullanılmaz.
 
-## Tam MVP için bekleyen ekranlar
-A01 davet, A02 aydınlatma/temsil, A03 kayıt, A04 onay bekleme, A05 kurtarma, A06–09 çalışma/soru/günlük geçmiş/düzeltme, A10 ödev teslim/doğrulama, A11 deneme detay, A12 etüt takvimi, A13 cihazlar/çakışma, A14 export/silme talepleri.
-W01 personel MFA, W06 şube/sınıf/dönem/personel, W07 davet, W08 CSV import/önizleme/hata, W09 haklar/retention, W10 ayarlar, W11 system admin kurum/abonelik/sağlık (öğrenci içeriği yok), W12 audit.
+## Öğrenci web
+- Bugün: son net, önceki karşılaştırılabilir denemeye fark, gelişim, günlük çalışma ve ödevler.
+- Deneme: TYT/AYT filtresi, deneme seçimi, doğru/yanlış/boş/net, ders kartları ve girilmiş konu notları.
+- Planım: atanmış ödev, teslim notu, öğretmen geri bildirimi ve etüt.
+- Telefon: tarih/cihaz/kategori, uygulama süreleri ve izin durumları.
+- Artı: çalışma/soru/günlük kayıt formu.
 
-## Tasarım şartı
-Sistem sans,açık tema,mavi vurgu,8px aralık,44px hedef,görünür odak,semantik label,renkten bağımsız durum. Her veri kaynak/gün/kapsam içerir. Eksik≠0. Cihazlar birleştirilmez. Sınırlı ölçüm etiketi zorunlu. İzin ret erişilebilir; risk/başarı damgası yok. Her ekranda loading/empty/error/offline/tekrar çözümü planlanır.
+## Personel
+Atanmış öğrenciler arasında seçim; deneme girişi, ödev atama/kontrol, etüt/katılım. Rehberlik özel notlara ve izinli telefon verisine erişir; öğretmen/yönetici telefon verisine veya özel notlara erişmez. Yönetici bekleyen öğrenciyi onaylar. Tam kurum/şube/davet yönetimi henüz yok.
+
+## Native Android
+Bugün, Deneme, Planım, Telefon. Sonuç okuma, ders netleri, ödev teslimi ve etüt; ayrı rıza/OS izin ekranı. Akademik işlemler online; web ile tüm ekranlar bire bir eşit değildir. APK derleme başarısı fiziksel cihaz UX/ölçüm testi yerine geçmez.
+
+## Durumlar
+Eksik sınav sıfır değildir; farklı sınavlar karıştırılmaz. Ağ hatası boş veri gibi gösterilmez. Form doğrulama hatası yerinde kalır. Teslim sürüm çakışmasında yenileme gerekir. Dialog Escape ile kapanır. Geç gelen öğrenci cevabı yeni seçimi ezmez.
+
+`design/preview.html` tek dosyalık, kurgusal ve bellekte çalışan bir önizlemedir; auth, kalıcı kayıt veya üretim güvenlik testi değildir.

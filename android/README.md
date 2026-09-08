@@ -1,24 +1,21 @@
-# Android geliştirme sürümü
+# Native Android · v0.2 geliştirme
 
-Native Kotlin · Android10+ · compile/target36 · AGP8.9.2/Kotlin2.1.20/Gradle8.11.1/JDK17.
+Kotlin/Activity Views; Android 10+ (minSdk 29), compile/target 36, AGP 8.9.2, Kotlin 2.1.20, Gradle 8.11.1, JDK 17. Yeni öğrenci ekranları: Bugün, Deneme, Planım ve Telefon; sonuç okuma ve ödev teslimi. Akademik işler online.
 
-## Doğrulanmış durum · 8 Eylül 2026
-Yerel sandbox Android SDK içermiyordu. Bunun yerine GitHub Actions'ta `testDebugUnitTest assembleDebug` çalıştırıldı ve Android kontrolü **başarıyla tamamlandı**:
-https://github.com/nurullahokuslukk-hub/dershane/actions/runs/34208040434/job/102002131588
-Workflow debug APK'yı `dershane-development-apk` artifact'i olarak yükler; saklama5 gün. Bu APK geliştirme amaçlıdır; production backend/Play Store yayını değildir. Fiziksel cihaz/OEM/izin davranışı test edilmedi.
+## Derleme
+Android Studio ile klasörü açın veya Gradle 8.11.1 ile:
+```sh
+gradle -p android --no-daemon testDebugUnitTest assembleDebug
+```
+GitHub Actions, unit test ve debug APK işini çalıştırır; güncel sonucun kanıtı PR #5'in Android kontrolüdür. Artifact `dershane-development-apk`, 5 gün tutulur. Mağaza imzalı yayın değildir. Fiziksel cihaz/emülatör ölçüm testi yapılmış sayılmaz.
 
-## Kurulum
-Android Studio ile bu klasörü açın. SDK36, JDK17 ve Gradle8.11.1 gerekir. Güvenilir kurulumdan `gradle wrapper --gradle-version 8.11.1`; sonra `./gradlew testDebugUnitTest assembleDebug`. Wrapper binary kaynak paketinde yok; CI kurulu Gradle kullanır.
-API'yi bilgisayarda başlatın; `adb reverse tcp:3100 tcp:3100`; debug uygulama adresi `http://127.0.0.1:3100`. Seed'deki `cizre-demo / ogrenci` hesabını kullanın. Böylece backend localhost/Host koruması korunur. Release yalnızca HTTPS. Gerçek öğrenci verisi kullanmayın.
+## Yerel API bağlantısı
+Bilgisayarda seed ve API'yi başlatın. `adb reverse tcp:3100 tcp:3100` ardından debug URL `http://127.0.0.1:3100` kullanın. Bu önerilen kurulum Host kontrolünü korur; burada fiziksel cihazda uygulanıp doğrulanmadı. Release yalnız HTTPS kabul eder.
 
-## Akış
-Giriş → ayrı paylaşım onayı → cihaz kaydı → Android kullanım erişimi → UsageStatsManager olaylarından cihazda süre toplama → Keystore şifreli SQLite kuyruk → WorkManager → tenant/izin/idempotency API → rehberlik paneli.
-İlk OS izni verilmeden toplama başlamaz. Sonraki iptal worker tarafından görüldüğünde toplama/aktarım durur; yerel kuyruk temizlenir ve sunucu iptali online olduğunda iletilir. Sunucu iptali anlık garanti değildir. Her toplama ve aktarım öncesi OS izni yeniden kontrol edilir.
+## Kullanım paylaşımı
+Öğrenci onayı → cihaz kaydı → Android kullanım erişimi → cihazda olaylardan süre hesaplama → Keystore ile şifreli SQLite kuyruk → WorkManager → sunucu. Yalnız uygulama/paket, süre, cihaz/gün ve kalite bilgisi; içerik/fotoğraf/konum alınmaz. İptalde yerel toplama/kuyruk durur; offline sunucu iptali bağlantı geldiğinde iletilir. Kullanım izni toplama ve aktarım öncesinde kontrol edilir.
 
-## Açık işler / sınırlar
-- Tüm mobil ekranlar yok; çalışma girişi online. Davet/veli-temsil/MFA/kurtarma/refresh ve akademik offline kuyruk bekliyor.
-- Worker ağ bağlantısı ile çalışır; bugün ve önceki günü yeniden hesaplar. Uzun offline dönemin tüm günlerini geri doldurmaz. Kuyruk, aktarım hatasında hazırlanmış batch'i korur. Eksik gün0 değildir.
-- 401/409/422 için kullanıcıya çakışma çözüm ekranı henüz yok.7 günden eski bekleyen kullanım verisi temizlenir.
-- Çoklu pencere/eksik OS olayı/OEM/pil/saat değişimi ölçümü etkileyebilir. Tek ön plan yaklaşımı `limited` kaliteyle iletilir; kesin ekran süresi değildir.
-- Bilinmeyen paket sınıflandırılmamış; uygulama yeniden kurulumu/yeni giriş cihaz kaydı oluşturabilir. Cihaz birleştirme ekranı yok.
-- KVKK/temsil süreci, hesap silme, retention/restore, gerçek cihaz testi ve Play Data safety/onayı tamamlanmadan gerçek öğrencilere dağıtmayın.
+Oturum dolarsa yerel toplama durur, kuyruk temizlenir ve yeniden giriş açılır; bu, sunucudaki onayın iptal edildiği iddiası değildir. Bekleyen sunucu iptali varsa farklı hesaba geçmeden önce önceki öğrenciyle giriş yapıp iptal tamamlanır. Activity kapandıktan sonra eski ağ cevabı UI açmaz.
+
+## Açık kapılar
+Tam offline akademik kuyruk; 409/422 çözüm ekranları; Auth refresh/recovery/MFA; davet/veli akışı; tüm web ekranlarıyla eşitlik; uzun offline geçmiş. Worker bugün/dünü yeniden hesaplar, uzun kapalı dönemin bütün günlerini tamamlamaz. Ölçüm `limited`; OEM/pil/çoklu pencere/eksik OS olayları kesinliği etkiler. Yeniden kurulum yeni cihazdır; cihaz birleştirme UI'si yok. Gerçek cihaz matrisi, hukuki süreçler ve Play kapıları olmadan gerçek veriyle dağıtmayın.

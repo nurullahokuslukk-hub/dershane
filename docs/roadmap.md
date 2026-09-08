@@ -1,14 +1,29 @@
-# Geliştirme yol haritası
+# MVP yol haritası ve kabul durumu · v0.2
 
-Tahmin:2 geliştirici + kısmi QA/hukukla10–12 hafta; ekip/dış onaylara bağlı,teslim garantisi değil.
+8 Eylül 2026. "Kod var", "test edildi" ve "canlıya hazır" ayrı durumlardır. Merge, deploy değildir. Tam üretim MVP'si henüz tamamlanmadı.
 
-1. **S0 / bu teslim:** ürün kararları,yerel web/API/telemetri,testler,native Android başlangıcı,tasarım. Tam ürün değil.
-2. **S1 / hafta1–2:** PostgreSQL repository/migration/RLS runtime negatif testleri; kurum/şube/sınıf/atama; davet-onay,kurtarma,MFA. Kabul:iki tenant/roller arasında kaçak yok,onaysız veri yok.
-3. **S2 / hafta3–4:** normalize akademik schema,deneme ders sonuçları/ceza böleni/revision,ödev atama-teslim-doğrulama,etüt,CSV validation/idempotency. Kabul:çift import/yanlış ders/izinsiz işlem testleri.
-4. **S3 / hafta5–6:** Android gerçek cihaz izin/offline testleri;tüm öğrenci ekranları;akademik offline kuyruk;refresh/Keystore;401/409 çözüm. Kabul:restart/ağ kaybı/hesap değişiminde kayıp/sızıntı yok.
-5. **S4 / hafta7–8:** veli/temsil/hukuk,disclosure sürümleri,talep/silme/retention worker,not/eylem ayrımı,backup restore. Kabul:iptal,silme,restore manifesti testleri.
-6. **S5 / hafta9–10:** Play target36/Data safety/hesap silme/politika kapıları,yük/güvenlik,staging,küçük gönüllü pilot. Telefon verisi ayrıca onaylanmadan açılmaz.
-7. **S6 / hafta11–12:** OEM/çoklu pencere/gün/saat/çoklu cihaz ölçüm doğrulaması,kategori sürümleme,pilot geri bildirim,ticari fiyat.
+## Tamamlanan geliştirme dilimi
+- [x] Çok kiracılı yerel API, sunucuda rol/atama sınırları, web cookie/CSRF ve Android bearer.
+- [x] İsteğe bağlı paket bazlı kullanım paylaşımı; cihaz/gün/revision/idempotency, iptal ve kategori görünümü.
+- [x] Yeni responsive web tasarımı ve özgün ikonlar.
+- [x] Normalize TYT/AYT ders sonuçları, sunucuda net hesabı ve öğrenci gelişim analizi.
+- [x] Ödev atama/teslim/düzeltme/doğrulama; etüt planı ve katılım.
+- [x] Android öğrenci sonuç/plan ekranlarının kaynakları ve derleme iş akışı.
+- [x] Supabase/PostgreSQL 14 tablo, read-only RLS ve gerçek PostgreSQL izolasyon testleri.
+- [x] 50 Node testi ve rol bazlı tarayıcı regresyonları.
 
-**Done:**kod+test+tenant/atama/izin negatif test+UI mobil/desktop/hata/boş+belge+migration uyumluluğu. Merge≠deploy. Dış onay yoksa yayın işi bitmez.
-İlk sonraki iş:Postgres adaptörü ve gerçek RLS testleri;paralelde Android cihaz izin/sync matrisi. Gerçek veri bu kapılardan ve hukuktan önce alınmaz.
+Bu işaretler üretim uygunluğunu veya gerçek cihaz testini ifade etmez. Son commit'in CI sonucu ayrıca kontrol edilir.
+
+## Kalan işler — bağımlılık sırası
+1. **Üretim veri ve kimlik katmanı.** Bölge/sözleşme kararı, güvenli proje bağlantısı, Node domain ile eşdeğer transactional RPC/repository, Supabase Auth, oturum yenileme, kurtarma ve personel MFA. Kabul: normal kullanıcı oturumlarıyla başarılı yazım + başka kurum/öğrenciye ret; idempotency, iptal ve audit aynı transaction içinde. Service key istemcide bulunmaz.
+2. **Kurum ve kabul yönetimi.** Sistem yöneticisi, kurum/şube/sınıf, personel ataması, davet ve onay akışı. Kabul: kullanıcı kendi rolünü değiştiremez; görevden alma derhal etkili olur; bekleyen öğrenci verisine erişemez.
+3. **Akademik veri bütünlüğü.** Deneme düzeltme/revision geçmişi, doğrulanmış CSV import, sayfalama, öğretmen ders kapsamı ve daha fazla konu girdisi. Kabul: yanlış kapasite, çift import, farklı sınav dağılımı ve izinsiz düzeltme testleri. Sıralama/yerleştirme puanı uydurulmaz.
+4. **Android pilot sağlamlığı.** Akademik offline kuyruk, 409/422 çözüm ekranları, uzun offline kullanım boşlukları, hesap değişimi ve gerçek cihaz matrisi. Kabul: yeniden başlatma, ağ kaybı, gün/saat değişimi, izin iptali ve OEM pil davranışında kayıp/sızıntı yok; eksik veri sıfır kabul edilmez.
+5. **Hukuki süreç ve veri yaşam döngüsü.** Veli/temsil doğrulaması, aydınlatma ve tercih sürümleri, veri talebi/hesap silme, retention, yedekleme ve geri yükleme tatbikatı. Kabul: iptal ile toplama durur; silme ve backup restore kayıtları denetlenebilir. KVKK incelemesi dış uzman onayı gerektirir.
+6. **Yayın.** İzleme, alarm, yük/güvenlik incelemesi, staging, gönüllü küçük pilot, Play Data safety/hesap silme/target SDK ve imzalı sürüm. Kabul: kritik hata yok, geri alma ve restore denenmiş, izin matrisi gerçek cihazda kanıtlanmış.
+7. **Pilot iyileştirmesi.** Kategori kataloğu yönetimi/sürümleme, çoklu pencere/OEM ölçüm değerlendirmesi, kullanıcı geri bildirimi ve ticari plan.
+
+Önceki 10–12 haftalık plan ekip ve dış onaylara bağlı kaba tahmindi; bu belge tarih garantisi vermez. Bir sonraki teknik bağımlılık canlıya uygun Postgres/Auth katmanıdır, ancak doğrulanmamış telefon verisi veya hukuki süreç olmadan gerçek veriyle pilot başlatılmaz.
+
+## Her iş için Done
+Kod + olumlu/olumsuz otomatik test + kurum/atama/izin kontrolü + mobil/masaüstü/hata/boş durum görsel incelemesi + güncel belge + migration/geri alma değerlendirmesi. Dış onay veya fiziksel cihaz kanıtı gereken iş, yalnız kod yazılarak kapatılamaz.

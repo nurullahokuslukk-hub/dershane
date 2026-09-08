@@ -1,29 +1,34 @@
-# Dershane · v0.1.0-dev
+# Dershane · v0.2.0-dev
 
-**Yerel web/API ve native Android geliştirme sürümü. Tamamlanmış üretim ürünü veya Play Store yayını değildir.**
+**Yeni öğrenci deneyimi ve çalışan akademik geliştirme sürümü. Üretime hazır veya yol haritası tamamen bitmiş bir ürün değildir. Gerçek öğrenci verisi kullanmayın.**
 
-İstenen akış: öğrenci onayı + Android kullanım erişimi → uygulama bazlı süre → güvenli sunucu → kategori/gün/cihaz → atanmış rehberlik.
-
-## Hemen çalıştır
+## Çalıştır
 Node.js 24.14+ (24.x):
 ```sh
-node scripts/seed.ts
-node apps/api/src/server.ts
+npm run seed
+npm start
 # http://127.0.0.1:3100
-node --test tests/*.test.ts
+npm test
 ```
-Harici npm paketi gerekmez. Giriş bilgileri seed sırasında rastgele üretilip `.local/demo-credentials.json` içine yazılır. Bu dosya, DB ve tokenlar Git'e alınmaz. Seed mevcut DB'yi ezmez. Roller: rehberlik, ogretmen, ogrenci, admin; kurum `cizre-demo`. Sadece kurgusal veri kullanılır.
+Web/API için harici npm bağımlılığı gerekmez. Seed, rastgele giriş bilgilerini `.local/demo-credentials.json` içine yazar; mevcut veritabanını ezmez. Kurum: `cizre-demo`; roller: `ogrenci`, `ogretmen`, `rehberlik`, `admin`. Yalnız kurgusal veri vardır. `.local`, parolalar ve veritabanları Git'e alınmaz.
 
-## Çalışan kapsam
-- Web giriş/çıkış; rol, tenant ve atanmış öğrenci kapsamı.
-- Rehberlikte uygulama/gün/cihaz/kategori seçimi ve kullanım süresine göre sıralama.
-- Öğrenci çalışma/soru/günlük bildirim; öğretmen deneme/ödev/katılım kaydı; özel rehberlik notları; pending öğrenci onayı.
-- Android bearer + web cookie/CSRF; izin sürümü, cihaz sahipliği, tekil batch, artan snapshot revision, atomik kayıt/audit.
-- İptalde kullanım tablolarını temizleme ve yeni/replay aktarımını reddetme.
+## v0.2'de çalışanlar
+- Açık/lila yüzeyler, özgün çizgi ikonlar, mobil yüzen alt menü ve masaüstü çalışma alanı. Ücretli Iconly varlığı kullanılmadı.
+- Öğrencide TYT/AYT deneme seçimi; toplam ve ders bazında doğru/yanlış/boş/net; aynı sınav dağılımı ve ceza böleninde gelişim grafiği.
+- TYT, AYT Sayısal ve AYT Eşit Ağırlık sonuç girişi. Sunucuda soru toplamı doğrulaması, negatif net ve tekrar kayıt koruması. İsteğe bağlı ders/konu notu.
+- Ödev atama → öğrenci teslimi → düzeltme/yeniden teslim → öğretmen doğrulaması; sürüm çakışması koruması.
+- Etüt planı, çakışma kontrolü ve zaman kontrollü katılım işaretleme.
+- Çalışma/soru/günlük kayıtlar; yalnız yetkili rehberlikte özel notlar; bekleyen öğrenci onayı.
+- Native Android öğrenci ana ekranı, deneme sonuçları, plan/teslim ve ayrı telefon paylaşımı ekranı.
+- İsteğe bağlı uygulama bazlı süre → cihaz/gün/sunucu kategorisi → atanmış rehberlik. Mesaj, fotoğraf, konum veya ekran içeriği alınmaz.
 
-## Henüz tamamlanmayanlar
-PostgreSQL üretim adaptörü/RLS testleri, tüm Android ekranları ve gerçek cihaz testleri, davet/veli-temsil akışı, MFA/parola kurtarma/refresh rotation, gelişmiş ödev iş akışı, kalıcı retention/backup-restore, production dağıtımı ve Play incelemesi. SQLite adaptörü `NODE_ENV=production` ile açılmaz. Demo onayı hukuki süreç yerine geçmez.
+## Testler ve kanıt
+50 Node testi; rol bazlı tarayıcı akışları; PostgreSQL 17 üzerinde RLS izolasyon testi; Android unit test ve debug derleme iş akışı. **Bir iş akışının bulunması testin geçtiği anlamına gelmez:** ilgili commit'in sonuçları [PR #5](https://github.com/nurullahokuslukk-hub/dershane/pull/5) ve [Actions](https://github.com/nurullahokuslukk-hub/dershane/actions) altında.
 
-Android kurulum ve sınırları: [android/README.md](android/README.md). GitHub Actions debug build sonucu ayrıca kontrol edilmelidir; build başarısı cihaz doğrulaması değildir.
+## Supabase kararı
+Hedef: PostgreSQL + Supabase Auth. Bölge/sözleşme ve KVKK aktarım değerlendirmesine bağlı olarak hosted veya uygun self-host. 14 tabloluk RLS temeli ve negatif testleri hazır; **çalışan uygulama henüz Supabase'e bağlı değil**. Client yazımları kapalıdır. [Ayrıntılar](docs/supabase.md).
 
-Tasarım önizlemesi: `python3 scripts/build-preview.py` ardından `design/preview.html` açın (sentetik, kalıcı değil). Belgeler: [Ürün](docs/product.md) · [Mimari](docs/architecture.md) · [Veri modeli](docs/data-model.md) · [Ekranlar](docs/screens.md) · [Yol haritası](docs/roadmap.md) · [Güvenlik/KVKK](docs/security.md) · [API](docs/api.md).
+## Yayın engelleri
+Supabase runtime/Auth/provisioning; davet ve kurum/şube/sınıf yönetimi; parola kurtarma/MFA/refresh; tam offline akademik kuyruk; sonuç düzeltme/CSV import; veli-temsil süreci; retention/backup/restore; fiziksel Android/OEM testleri; staging ve imzalı Play yayını açık iş olarak kalır. SQLite production modunda açılmaz.
+
+[Teslim ve kurulum](TESLIM.md) · [Güncel kapsam ve kabul ölçütleri](docs/roadmap.md) · [Ekranlar](docs/screens.md) · [Android](android/README.md) · [Akademik API](docs/mvp-v2.md)

@@ -1,5 +1,8 @@
 name: Development checks
 on: [push, pull_request]
+concurrency:
+  group: development-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -13,6 +16,7 @@ jobs:
           node-version: 24.14.1
       - run: node --test tests/*.test.ts
       - run: node --check apps/web/app.js
+      - run: node --check apps/web/academic-ui.js
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -23,5 +27,4 @@ jobs:
           node-version: 24.14.1
       - run: npm install --no-save --package-lock=false playwright@1.56.1
       - run: npx playwright install --with-deps chromium
-      - run: node tests/browser.mjs
-# Real PostgreSQL/RLS and physical Android device tests remain release gates.
+      - run: for test in tests/browser*.mjs; do node "$test" || exit 1; done
