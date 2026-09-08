@@ -1,22 +1,24 @@
-# Android geliştirme projesi
+# Android geliştirme sürümü
 
-Native Kotlin, Android 10+ (minSdk 29), compile/target 36, AGP 8.9.2 / Kotlin 2.1.20 / Gradle 8.11.1 / JDK 17.
-Bu ortamda Android SDK/Gradle ve paket erişimi olmadığından **derlenmedi, APK üretilmedi, cihaz testi yapılmadı**. Kaynak kodu başlangıcıdır; mağaza yayımlanabilir uygulama değildir.
+Native Kotlin · Android10+ · compile/target36 · AGP8.9.2/Kotlin2.1.20/Gradle8.11.1/JDK17.
 
-## Derleme ve localhost denemesi
-Android Studio ile bu klasörü açın. SDK 36 ve Gradle 8.11.1 kurun. Güvenilir Gradle kurulumundan `gradle wrapper --gradle-version 8.11.1` üretin (wrapper binary bu pakette yok). Ardından `./gradlew testDebugUnitTest assembleDebug`.
-Web/API sunucusunu bilgisayarda başlatın. `adb reverse tcp:3100 tcp:3100` çalıştırın; Android debug URL'si `http://127.0.0.1:3100`. Bu, backend'in localhost/Host korumasını korur. Release yalnızca HTTPS kabul eder. Debug API adresine gerçek veri göndermeyin.
+## Doğrulanmış durum · 8 Eylül 2026
+Yerel sandbox Android SDK içermiyordu. Bunun yerine GitHub Actions'ta `testDebugUnitTest assembleDebug` çalıştırıldı ve Android kontrolü **başarıyla tamamlandı**:
+https://github.com/nurullahokuslukk-hub/dershane/actions/runs/34208040434/job/102002131588
+Workflow debug APK'yı `dershane-development-apk` artifact'i olarak yükler; saklama5 gün. Bu APK geliştirme amaçlıdır; production backend/Play Store yayını değildir. Fiziksel cihaz/OEM/izin davranışı test edilmedi.
 
-## Kaynakta bulunan akış
-Öğrenci giriş → uygulama içi paylaşım onayı → cihaz kaydı → Android özel kullanım erişimi → UsageStatsManager olaylarından cihazda süre toplama → Keystore ile şifreli SQLite kuyruğu → WorkManager HTTPS/JSON → sunucu idempotency + kategori → web.
-İptal yerel kuyruğu siler, toplamayı durdurur; offline iptal sunucuya bağlantı gelince iletilir. OS izni kapalıysa worker bunu gözlemlediğinde paylaşımı durdurur. Kontrol aralıkları nedeniyle sunucu iptali anlık garanti değildir. Yeni toplama ve her aktarım öncesi OS izni yeniden kontrol edilir.
+## Kurulum
+Android Studio ile bu klasörü açın. SDK36, JDK17 ve Gradle8.11.1 gerekir. Güvenilir kurulumdan `gradle wrapper --gradle-version 8.11.1`; sonra `./gradlew testDebugUnitTest assembleDebug`. Wrapper binary kaynak paketinde yok; CI kurulu Gradle kullanır.
+API'yi bilgisayarda başlatın; `adb reverse tcp:3100 tcp:3100`; debug uygulama adresi `http://127.0.0.1:3100`. Seed'deki `cizre-demo / ogrenci` hesabını kullanın. Böylece backend localhost/Host koruması korunur. Release yalnızca HTTPS. Gerçek öğrenci verisi kullanmayın.
 
-## Bilinen eksikler
-- Tüm öğrenci/öğretmen ekranları yok. Başlangıçta çalışma girişi ve kullanım paylaşımı ekranı var; çalışma girişi online (offline akademik kuyruk S3).
-- Şube/davet/veli doğrulama/parola kurtarma/refresh rotation yok.
-- 401/409/422 sonrası kuyruk çözüm ekranı yok; tekrar giriş/manuel destek gerektirir. 7 günden eski bekleyen kullanım kayıtları temizlenir.
-- Permission açılışında kullanıcıya işletim sistemi izin penceresi zorla gösterilmez; ayrı düğmeyle açılır.
-- ForegroundReducer tek ön plan yaklaşımıdır; çoklu pencere, eksik OS olayı, OEM/pil farkı kesin süreyi etkiler. `limited` kalitesiyle gönderilir. Paket etiketi sunucuda bilinmiyorsa paket adı / sınıflandırılmamış görünür.
-- Bugün ve önceki gün yeniden hesaplanır; cihaz uzun süre kapalıysa tüm eski günler geri doldurulmaz. Eksik gün 0 gösterilmez.
-- Telefon yeniden kurulumunda yeni cihaz kaydı oluşur; cihaz birleştirme UI'si henüz yok.
-- Play Data safety, hesap silme akışı, hukuki süreçler ve gerçek cihaz testleri tamamlanmadan dağıtmayın.
+## Akış
+Giriş → ayrı paylaşım onayı → cihaz kaydı → Android kullanım erişimi → UsageStatsManager olaylarından cihazda süre toplama → Keystore şifreli SQLite kuyruk → WorkManager → tenant/izin/idempotency API → rehberlik paneli.
+İlk OS izni verilmeden toplama başlamaz. Sonraki iptal worker tarafından görüldüğünde toplama/aktarım durur; yerel kuyruk temizlenir ve sunucu iptali online olduğunda iletilir. Sunucu iptali anlık garanti değildir. Her toplama ve aktarım öncesi OS izni yeniden kontrol edilir.
+
+## Açık işler / sınırlar
+- Tüm mobil ekranlar yok; çalışma girişi online. Davet/veli-temsil/MFA/kurtarma/refresh ve akademik offline kuyruk bekliyor.
+- Worker ağ bağlantısı ile çalışır; bugün ve önceki günü yeniden hesaplar. Uzun offline dönemin tüm günlerini geri doldurmaz. Kuyruk, aktarım hatasında hazırlanmış batch'i korur. Eksik gün0 değildir.
+- 401/409/422 için kullanıcıya çakışma çözüm ekranı henüz yok.7 günden eski bekleyen kullanım verisi temizlenir.
+- Çoklu pencere/eksik OS olayı/OEM/pil/saat değişimi ölçümü etkileyebilir. Tek ön plan yaklaşımı `limited` kaliteyle iletilir; kesin ekran süresi değildir.
+- Bilinmeyen paket sınıflandırılmamış; uygulama yeniden kurulumu/yeni giriş cihaz kaydı oluşturabilir. Cihaz birleştirme ekranı yok.
+- KVKK/temsil süreci, hesap silme, retention/restore, gerçek cihaz testi ve Play Data safety/onayı tamamlanmadan gerçek öğrencilere dağıtmayın.
