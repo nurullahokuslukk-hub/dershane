@@ -13,4 +13,15 @@ jobs:
           node-version: 24.14.1
       - run: node --test tests/*.test.ts
       - run: node --check apps/web/app.js
-# Android, PostgreSQL/RLS and device test jobs remain release gates.
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.14.1
+      - run: npm install --no-save --package-lock=false playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/browser.mjs
+# Real PostgreSQL/RLS and physical Android device tests remain release gates.
