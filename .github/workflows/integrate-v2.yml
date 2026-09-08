@@ -1,8 +1,8 @@
-name: Integrate reviewed v2 source
+name: Verify v2 review corrections
 on:
   push:
     branches: [feat/glass-web-mvp-v2]
-    paths: [scripts/integrate-v2.py, .github/workflows/integrate-v2.yml]
+    paths: [scripts/harden-v2.py, .github/workflows/integrate-v2.yml]
 permissions:
   contents: write
 jobs:
@@ -14,17 +14,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24.14.1
-      - run: python3 scripts/integrate-v2.py
+      - run: python3 scripts/harden-v2.py
       - run: node --test tests/*.test.ts
       - run: npm install --no-save --package-lock=false playwright@1.56.1
       - run: npx playwright install --with-deps chromium
       - run: node tests/browser.mjs
+      - run: python3 scripts/build-preview.py
       - name: Commit verified source on the development branch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add apps android scripts/seed.ts scripts/build-preview.py
+          git add apps android tests package.json design/preview.html
           if ! git diff --cached --quiet; then
-            git commit -m 'feat: integrate verified v2 web API and student navigation'
+            git commit -m 'fix: apply tested v2 review corrections and refresh preview'
             git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
