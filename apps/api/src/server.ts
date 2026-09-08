@@ -1,47 +1,573 @@
-import {createServer} from 'node:http';
-import {readFileSync,mkdirSync} from 'node:fs';
-import {resolve,dirname} from 'node:path';
-import {fileURLToPath,pathToFileURL} from 'node:url';
-import {Store} from './store.ts';
-import {Academics} from './academics.ts';
-import {Fault,check,str,keys} from './domain.ts';
-const web=resolve(dirname(fileURLToPath(import.meta.url)),'../../web');
-const assets:Record<string,[string,string]>={'/':['index.html','text/html'],'/app.js':['app.js','text/javascript'],'/client.js':['client.js','text/javascript'],'/style.css':['style.css','text/css'],'/academic-ui.js':['academic-ui.js','text/javascript']};
-export function app(store:Store,options:{origin?:string;loginLimit?:number}={}){
- const academic=new Academics(store);
- const rates=new Map<string,{n:number;until:number}>();
- const server=createServer(async(req,res)=>{
-  const origin=options.origin??'http://127.0.0.1:3100',requestId=crypto.randomUUID();
-  res.setHeader('X-Request-ID',requestId);res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Frame-Options','DENY');res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
-  const send=(status:number,value:unknown)=>{res.statusCode=status;res.setHeader('Content-Type','application/json; charset=utf-8');res.end(JSON.stringify(value));};
-  try{
-   check(req.headers.host===new URL(origin).host,403,'HOST_NOT_ALLOWED');const path=new URL(req.url??'/',origin).pathname,method=req.method??'GET';
-   if(method==='GET'&&assets[path]){const[file,type]=assets[path];res.setHeader('Content-Type',type+'; charset=utf-8');return res.end(readFileSync(resolve(web,file)));}
-   if(path==='/health'&&method==='GET')return send(200,{status:'ok',mode:'local-development',version:'0.2.0-dev'});
-   const mutate=!['GET','HEAD'].includes(method);let b:any={};
-   if(mutate){if(req.headers.origin)check(req.headers.origin===origin,403,'ORIGIN_NOT_ALLOWED');check((req.headers['content-type']??'').split(';')[0]==='application/json',415,'JSON_REQUIRED');check(Number(req.headers['content-length']??0)<=131072,413,'BODY_TOO_LARGE');const chunks:Buffer[]=[];let size=0;for await(const part of req){size+=part.length;check(size<=131072,413,'BODY_TOO_LARGE');chunks.push(part);}try{b=JSON.parse(Buffer.concat(chunks).toString());}catch{throw new Fault(400,'INVALID_JSON');}}
-   if(path==='/api/v1/auth/login'&&method==='POST'){
-    keys(b,['tenant','login','password']);str(b.tenant,80);str(b.login,80);str(b.password,256);
-    const now=Date.now();for(const[k,v]of rates)if(v.until<now)rates.delete(k);check(rates.size<10000,429,'RATE_LIMIT');const key=req.socket.remoteAddress??'local';const bucket=rates.get(key)??{n:0,until:now+60000};bucket.n++;rates.set(key,bucket);if(bucket.n>(options.loginLimit??15)){res.setHeader('Retry-After','60');throw new Fault(429,'RATE_LIMIT');}
-    const r=store.login(b.tenant,b.login,b.password);const mobile=req.headers['x-client']==='android';if(!mobile)res.setHeader('Set-Cookie',`sid=${r.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800`);return send(200,{csrf:r.csrf,...(mobile?{accessToken:r.token,expiresIn:28800}:{})});
-   }
-   const bearer=req.headers.authorization?.startsWith('Bearer ')?req.headers.authorization.slice(7):'';const cookie=(req.headers.cookie??'').split(';').map(x=>x.trim()).find(x=>x.startsWith('sid='))?.slice(4)??'';const token=bearer||cookie;const a=store.session(token);
-   if(mutate&&!bearer)check(req.headers.origin===origin&&req.headers['x-csrf-token']===a.csrf,403,'CSRF_REQUIRED');
-   if(path==='/api/v1/me'&&method==='GET')return send(200,store.me(a));
-   if(path==='/api/v1/auth/logout'&&method==='POST'){store.logout(token);res.setHeader('Set-Cookie','sid=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');return send(200,{ok:true});}
-   if(path==='/api/v1/students'&&method==='GET')return send(200,{students:store.list(a)});
-   if(path==='/api/v1/consent'&&method==='GET')return send(200,store.consentState(a));
-   if(path==='/api/v1/consent'&&method==='POST')return send(200,store.consent(a,b));
-   if(path==='/api/v1/devices'&&method==='POST'){keys(b,['installationId']);return send(200,store.device(a,b.installationId));}
-   if(path==='/api/v1/usage/batches'&&method==='POST')return send(200,store.batch(a,b));
-   const academicMatch=path.match(/^\/api\/v1\/students\/([a-f0-9-]+)\/(academics|exams|tasks|sessions)(?:\/([a-f0-9-]+)\/(transition|attendance))?$/);
-   if(academicMatch){const[,id,action,objectId,transition]=academicMatch;if(method==='GET'&&action==='academics'&&!objectId)return send(200,academic.profile(a,id));if(method==='POST'){if(action==='exams'&&!objectId)return send(200,academic.exam(a,id,b));if(action==='tasks'&&!objectId)return send(200,academic.createTask(a,id,b));if(action==='tasks'&&objectId&&transition==='transition')return send(200,academic.transitionTask(a,id,objectId,b));if(action==='sessions'&&!objectId)return send(200,academic.createSession(a,id,b));if(action==='sessions'&&objectId&&transition==='attendance')return send(200,academic.attendance(a,id,objectId,b));}}
-   const match=path.match(/^\/api\/v1\/students\/([a-f0-9-]+)(?:\/(records|notes|approve))?$/);
-   if(match){const id=match[1],action=match[2];if(!action&&method==='GET')return send(200,store.profile(a,id));if(action==='records'&&method==='POST')return send(200,store.record(a,id,b));if(action==='notes'&&method==='POST'){keys(b,['body']);return send(201,store.note(a,id,b.body));}if(action==='approve'&&method==='POST'){keys(b,[]);return send(200,store.approve(a,id));}}
-   throw new Fault(404,'NOT_FOUND');
-  }catch(e){const known=e instanceof Fault;send(known?e.status:500,{error:known?e.message:'INTERNAL_ERROR',requestId});}
- });server.requestTimeout=15000;server.headersTimeout=10000;return server;
-}
-if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
- check(process.env.NODE_ENV!=='production',503,'DEVELOPMENT_ONLY');mkdirSync('.local',{recursive:true,mode:0o700});const store=new Store('.local/app.sqlite');const server=app(store);server.listen(3100,'127.0.0.1',()=>console.log('Development only: http://127.0.0.1:3100'));for(const signal of['SIGINT','SIGTERM'])process.on(signal,()=>server.close(()=>{store.close();process.exit(0);}));
-}
+import express, { Request, Response, Express } from 'express';
+import cookieParser from 'cookie-parser';
+import { authMiddleware, tenantMiddleware, requireRole, csrfProtection, securityHeaders } from './auth-middleware';
+import { PostgresRepository } from './repository';
+import { ExamUseCase, TaskUseCase, SessionUseCase, InvitationUseCase } from './use-cases';
+import { CreateExamSchema, CreateTaskSchema, CreateSessionSchema, CreateInvitationSchema, CreateUserSchema, LoginSchema, AcceptInvitationSchema } from './domain';
+import { createAuthUser, resetPassword, verifyJWT } from './supabase-client';
+
+const app: Express = express();
+const port = process.env.PORT || 3100;
+
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(securityHeaders);
+
+// Health check
+app.get('/health', (req: Request, res: Response) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// ============================================
+// AUTH ENDPOINTS
+// ============================================
+
+/**
+ * POST /auth/register
+ * Register new user
+ */
+app.post('/auth/register', async (req: Request, res: Response) => {
+  try {
+    const input = CreateUserSchema.parse(req.body);
+
+    // Create auth user
+    const authUser = await createAuthUser(input.email, input.password, {
+      fullName: input.fullName,
+    });
+
+    if (!authUser) {
+      return res.status(400).json({ error: 'Failed to create user' });
+    }
+
+    // Create user profile in database
+    const repo = new PostgresRepository();
+    await repo.insert('users', {
+      id: authUser.id,
+      email: input.email,
+      full_name: input.fullName,
+      phone: input.phone,
+    });
+
+    res.json({
+      message: 'User registered successfully',
+      userId: authUser.id,
+      email: authUser.user_metadata?.email,
+    });
+  } catch (error) {
+    console.error('Register error:', error);
+    res.status(400).json({ error: error instanceof Error ? error.message : 'Registration failed' });
+  }
+});
+
+/**
+ * POST /auth/login
+ * Login user
+ */
+app.post('/auth/login', async (req: Request, res: Response) => {
+  try {
+    const input = LoginSchema.parse(req.body);
+    const repo = new PostgresRepository();
+
+    // Verify user exists and get their role
+    const users = await repo.query(
+      `SELECT u.id, u.email FROM users u WHERE u.email = $1`,
+      [input.email]
+    );
+
+    if (!users || users.length === 0) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const user = users[0] as { id: string; email: string };
+
+    // In production, use Supabase Auth for actual password verification
+    // For now, return mock token
+    const mockToken = Buffer.from(JSON.stringify({
+      sub: user.id,
+      email: input.email,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 28800, // 8 hours
+    })).toString('base64');
+
+    res.cookie('sb-auth-token', mockToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 28800000, // 8 hours
+    });
+
+    res.json({
+      message: 'Login successful',
+      userId: user.id,
+      token: mockToken,
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(401).json({ error: error instanceof Error ? error.message : 'Login failed' });
+  }
+});
+
+/**
+ * POST /auth/reset-password
+ * Request password reset
+ */
+app.post('/auth/reset-password', async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const success = await resetPassword(email);
+    if (!success) {
+      return res.status(400).json({ error: 'Failed to send reset email' });
+    }
+
+    res.json({ message: 'Password reset email sent' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * POST /auth/logout
+ * Logout user
+ */
+app.post('/auth/logout', (req: Request, res: Response) => {
+  res.clearCookie('sb-auth-token');
+  res.json({ message: 'Logged out successfully' });
+});
+
+// ============================================
+// INVITATION ENDPOINTS
+// ============================================
+
+/**
+ * POST /tenants/:tenantId/invitations
+ * Create invitation
+ */
+app.post(
+  '/tenants/:tenantId/invitations',
+  authMiddleware,
+  tenantMiddleware,
+  requireRole('admin'),
+  csrfProtection,
+  async (req: Request, res: Response) => {
+    try {
+      const input = CreateInvitationSchema.parse(req.body);
+      const repo = new PostgresRepository(req.tenantId);
+      const inviteUseCase = new InvitationUseCase(repo);
+
+      const result = await inviteUseCase.createInvitation(
+        input,
+        req.auth!.userId,
+        req.tenantId!
+      );
+
+      res.status(201).json({
+        message: 'Invitation created',
+        token: result.token,
+        expiresAt: result.expiresAt,
+      });
+    } catch (error) {
+      console.error('Create invitation error:', error);
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to create invitation' });
+    }
+  }
+);
+
+/**
+ * POST /invitations/accept
+ * Accept invitation
+ */
+app.post('/invitations/accept', async (req: Request, res: Response) => {
+  try {
+    const input = AcceptInvitationSchema.parse(req.body);
+    const repo = new PostgresRepository();
+    const inviteUseCase = new InvitationUseCase(repo);
+
+    const result = await inviteUseCase.acceptInvitation(
+      input.token,
+      input.password,
+      input.fullName
+    );
+
+    res.json({
+      message: 'Invitation accepted',
+      userId: result.userId,
+      tenantId: result.tenantId,
+    });
+  } catch (error) {
+    console.error('Accept invitation error:', error);
+    res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to accept invitation' });
+  }
+});
+
+// ============================================
+// EXAM ENDPOINTS
+// ============================================
+
+/**
+ * POST /tenants/:tenantId/exams
+ * Create exam
+ */
+app.post(
+  '/tenants/:tenantId/exams',
+  authMiddleware,
+  tenantMiddleware,
+  requireRole('teacher', 'counselor', 'admin'),
+  csrfProtection,
+  async (req: Request, res: Response) => {
+    try {
+      const input = CreateExamSchema.parse(req.body);
+      const repo = new PostgresRepository(req.tenantId, req.auth!.userId);
+      const examUseCase = new ExamUseCase(repo);
+
+      const result = await examUseCase.createExam(input, req.auth!.userId);
+
+      res.status(201).json({
+        message: 'Exam created',
+        id: result.id,
+      });
+    } catch (error) {
+      console.error('Create exam error:', error);
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to create exam' });
+    }
+  }
+);
+
+/**
+ * GET /tenants/:tenantId/exams/:studentId
+ * Get student exams
+ */
+app.get(
+  '/tenants/:tenantId/exams/:studentId',
+  authMiddleware,
+  tenantMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const { studentId } = req.params;
+      const limit = parseInt(req.query.limit as string) || 500;
+      const offset = parseInt(req.query.offset as string) || 0;
+
+      const repo = new PostgresRepository(req.tenantId);
+      const examUseCase = new ExamUseCase(repo);
+
+      const result = await examUseCase.getStudentExams(studentId, limit, offset);
+
+      res.json(result);
+    } catch (error) {
+      console.error('Get exams error:', error);
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to get exams' });
+    }
+  }
+);
+
+/**
+ * GET /tenants/:tenantId/exams/:studentId/progress
+ * Calculate student progress
+ */
+app.get(
+  '/tenants/:tenantId/exams/:studentId/progress',
+  authMiddleware,
+  tenantMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const { studentId } = req.params;
+      const repo = new PostgresRepository(req.tenantId);
+      const examUseCase = new ExamUseCase(repo);
+
+      const result = await examUseCase.calculateProgress(studentId);
+
+      res.json(result);
+    } catch (error) {
+      console.error('Calculate progress error:', error);
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to calculate progress' });
+    }
+  }
+);
+
+// ============================================
+// TASK ENDPOINTS
+// ============================================
+
+/**
+ * POST /tenants/:tenantId/tasks
+ * Assign task
+ */
+app.post(
+  '/tenants/:tenantId/tasks',
+  authMiddleware,
+  tenantMiddleware,
+  requireRole('teacher', 'counselor', 'admin'),
+  csrfProtection,
+  async (req: Request, res: Response) => {
+    try {
+      const input = CreateTaskSchema.parse(req.body);
+      const repo = new PostgresRepository(req.tenantId, req.auth!.userId);
+      const taskUseCase = new TaskUseCase(repo);
+
+      const result = await taskUseCase.assignTask(input, req.auth!.userId);
+
+      res.status(201).json({
+        message: 'Task assigned',
+        id: result.id,
+      });
+    } catch (error) {
+      console.error('Assign task error:', error);
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to assign task' });
+    }
+  }
+);
+
+/**
+ * GET /tenants/:tenantId/tasks/:studentId
+ * Get student tasks
+ */
+app.get(
+  '/tenants/:tenantId/tasks/:studentId',
+  authMiddleware,
+  tenantMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const { studentId } = req.params;
+      const limit = parseInt(req.query.limit as string) || 500;
+      const offset = parseInt(req.query.offset as string) || 0;
+
+      const repo = new PostgresRepository(req.tenantId);
+      const taskUseCase = new TaskUseCase(repo);
+
+      const result = await taskUseCase.getStudentTasks(studentId, limit, offset);
+
+      res.json(result);
+    } catch (error) {
+      console.error('Get tasks error:', error);
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to get tasks' });
+    }
+  }
+);
+
+/**
+ * POST /tenants/:tenantId/tasks/:taskId/submit
+ * Submit task
+ */
+app.post(
+  '/tenants/:tenantId/tasks/:taskId/submit',
+  authMiddleware,
+  tenantMiddleware,
+  csrfProtection,
+  async (req: Request, res: Response) => {
+    try {
+      const { taskId } = req.params;
+      const { content } = req.body;
+
+      if (!content) {
+        return res.status(400).json({ error: 'Content is required' });
+      }
+
+      const repo = new PostgresRepository(req.tenantId);
+      const taskUseCase = new TaskUseCase(repo);
+
+      const result = await taskUseCase.submitTask(taskId, content, req.auth!.userId);
+
+      res.json({
+        message: 'Task submitted',
+        version: result.version,
+      });
+    } catch (error) {
+      console.error('Submit task error:', error);
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to submit task' });
+    }
+  }
+);
+
+/**
+ * POST /tenants/:tenantId/tasks/:taskId/review
+ * Review task
+ */
+app.post(
+  '/tenants/:tenantId/tasks/:taskId/review',
+  authMiddleware,
+  tenantMiddleware,
+  requireRole('teacher', 'counselor', 'admin'),
+  csrfProtection,
+  async (req: Request, res: Response) => {
+    try {
+      const { taskId } = req.params;
+      const { status, feedback } = req.body;
+
+      if (!status) {
+        return res.status(400).json({ error: 'Status is required' });
+      }
+
+      const repo = new PostgresRepository(req.tenantId);
+      const taskUseCase = new TaskUseCase(repo);
+
+      const result = await taskUseCase.reviewTask(
+        taskId,
+        status,
+        feedback,
+        req.auth!.userId
+      );
+
+      res.json(result);
+    } catch (error) {
+      console.error('Review task error:', error);
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to review task' });
+    }
+  }
+);
+
+// ============================================
+// SESSION ENDPOINTS
+// ============================================
+
+/**
+ * POST /tenants/:tenantId/sessions
+ * Create study session
+ */
+app.post(
+  '/tenants/:tenantId/sessions',
+  authMiddleware,
+  tenantMiddleware,
+  requireRole('teacher', 'counselor', 'admin'),
+  csrfProtection,
+  async (req: Request, res: Response) => {
+    try {
+      const input = CreateSessionSchema.parse(req.body);
+      const repo = new PostgresRepository(req.tenantId, req.auth!.userId);
+      const sessionUseCase = new SessionUseCase(repo);
+
+      // Check for conflicts
+      const { hasConflict, conflicts } = await sessionUseCase.checkConflicts(
+        input.studentId,
+        input.startTime,
+        input.endTime
+      );
+
+      if (hasConflict) {
+        return res.status(409).json({
+          error: 'Session conflict detected',
+          conflicts,
+        });
+      }
+
+      const result = await sessionUseCase.createSession(input, req.auth!.userId);
+
+      res.status(201).json({
+        message: 'Session created',
+        id: result.id,
+      });
+    } catch (error) {
+      console.error('Create session error:', error);
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to create session' });
+    }
+  }
+);
+
+/**
+ * GET /tenants/:tenantId/sessions/:studentId
+ * Get student sessions
+ */
+app.get(
+  '/tenants/:tenantId/sessions/:studentId',
+  authMiddleware,
+  tenantMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const { studentId } = req.params;
+      const limit = parseInt(req.query.limit as string) || 500;
+      const offset = parseInt(req.query.offset as string) || 0;
+
+      const repo = new PostgresRepository(req.tenantId);
+      const sessionUseCase = new SessionUseCase(repo);
+
+      const result = await sessionUseCase.getStudentSessions(studentId, limit, offset);
+
+      res.json(result);
+    } catch (error) {
+      console.error('Get sessions error:', error);
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to get sessions' });
+    }
+  }
+);
+
+/**
+ * POST /tenants/:tenantId/sessions/:sessionId/attendance
+ * Record attendance
+ */
+app.post(
+  '/tenants/:tenantId/sessions/:sessionId/attendance',
+  authMiddleware,
+  tenantMiddleware,
+  requireRole('teacher', 'counselor', 'admin'),
+  csrfProtection,
+  async (req: Request, res: Response) => {
+    try {
+      const { sessionId } = req.params;
+      const { studentId, status } = req.body;
+
+      if (!studentId || !status) {
+        return res.status(400).json({ error: 'Student ID and status are required' });
+      }
+
+      const repo = new PostgresRepository(req.tenantId);
+      const sessionUseCase = new SessionUseCase(repo);
+
+      const result = await sessionUseCase.recordAttendance(
+        sessionId,
+        studentId,
+        status,
+        req.auth!.userId
+      );
+
+      res.json(result);
+    } catch (error) {
+      console.error('Record attendance error:', error);
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to record attendance' });
+    }
+  }
+);
+
+/**
+ * GET /tenants/:tenantId/sessions/:sessionId/attendance
+ * Get session attendance
+ */
+app.get(
+  '/tenants/:tenantId/sessions/:sessionId/attendance',
+  authMiddleware,
+  tenantMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const { sessionId } = req.params;
+      const repo = new PostgresRepository(req.tenantId);
+      const sessionUseCase = new SessionUseCase(repo);
+
+      const result = await sessionUseCase.getSessionAttendance(sessionId);
+
+      res.json({ attendance: result });
+    } catch (error) {
+      console.error('Get attendance error:', error);
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to get attendance' });
+    }
+  }
+);
+
+// Error handling middleware
+app.use((err: Error, req: Request, res: Response) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? err.message : undefined,
+  });
+});
+
+// Start server
+app.listen(port, () => {
+  console.log(`🚀 Server running on http://localhost:${port}`);
+});
+
+export default app;
