@@ -1,0 +1,16 @@
+import {test,before,after} from 'node:test';
+import assert from 'node:assert/strict';
+import {Store,seed} from '../apps/api/src/store.ts';
+import {app} from '../apps/api/src/server.ts';
+import {createServer} from 'node:net';
+let store:Store,server:any,origin:string;
+before(async()=>{store=new Store();seed(store,'http-test-only-password');const probe=createServer();await new Promise<void>(r=>probe.listen(0,'127.0.0.1',r));const port=(probe.address()as any).port;await new Promise<void>(r=>probe.close(()=>r()));origin=`http://127.0.0.1:${port}`;server=app(store,{origin,loginLimit:8});await new Promise<void>(r=>server.listen(port,'127.0.0.1',r));});
+after(async()=>{await new Promise<void>(r=>server.close(()=>r()));store.close();});
+const post=(path:string,body:any,headers:Record<string,string>={})=>fetch(origin+'/api/v1'+path,{method:'POST',headers:{'Content-Type':'application/json',...headers},body:JSON.stringify(body)});
+test('health reports development, protected list requires auth',async()=>{assert.equal((await(await fetch(origin+'/health')).json()).mode,'local-development');assert.equal((await fetch(origin+'/api/v1/students')).status,401);});
+test('serves actual web asset with security headers',async()=>{const r=await fetch(origin+'/');assert.equal(r.status,200);assert.ok((await r.text()).includes('lang="tr"'));assert.match(r.headers.get('content-security-policy')??'',/frame-ancestors 'none'/);assert.equal(r.headers.get('cache-control'),'no-store');});
+test('cross-origin login is denied',async()=>{const r=await post('/auth/login',{tenant:'cizre-demo',login:'ogrenci',password:'http-test-only-password'},{Origin:'https://evil.invalid'});assert.equal(r.status,403);});
+test('cookie mutation requires CSRF and origin',async()=>{const r=await post('/auth/login',{tenant:'cizre-demo',login:'ogrenci',password:'http-test-only-password'},{Origin:origin});const body=await r.json();const cookie=r.headers.get('set-cookie')!.split(';')[0];assert.ok(r.headers.get('set-cookie')!.includes('HttpOnly'));assert.equal((await post('/auth/logout',{}, {Cookie:cookie,Origin:origin})).status,403);assert.equal((await post('/auth/logout',{}, {Cookie:cookie,Origin:origin,'X-CSRF-Token':body.csrf})).status,200);assert.equal((await fetch(origin+'/api/v1/me',{headers:{Cookie:cookie}})).status,401);});
+test('Android bearer uses same scoped API',async()=>{const r=await post('/auth/login',{tenant:'cizre-demo',login:'ogrenci',password:'http-test-only-password'},{'X-Client':'android'});const{accessToken}=await r.json();assert.ok(accessToken);assert.equal(r.headers.get('set-cookie'),null);const rows=await(await fetch(origin+'/api/v1/students',{headers:{Authorization:'Bearer '+accessToken}})).json();assert.equal(rows.students.length,1);});
+test('malformed JSON and oversized body rejected',async()=>{const r=await fetch(origin+'/api/v1/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:'{broken'});assert.equal(r.status,400);const big=await post('/auth/login',{x:'x'.repeat(140000)});assert.equal(big.status,413);});
+test('login rate limit enforced',async()=>{let status=0;for(let i=0;i<9;i++)status=(await post('/auth/login',{tenant:'cizre-demo',login:'none',password:'wrong'})).status;assert.equal(status,429);});
