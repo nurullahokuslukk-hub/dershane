@@ -14,8 +14,10 @@ Her oturuma buradan başla. Ayrıntılar için [CLAUDE.md](../CLAUDE.md).
 **Aktif faz:** [Faz 0 — Akış & Veri Modeli Belgelendirmesi](phases/phase-0-wireframes.md)
 (`status: in-progress`)
 
-**Sıradaki iş:** Android öğrenci ekran akışı ve web panel ekran akışlarının
-[docs/flows/](flows/) altında doldurulması.
+**Sıradaki iş:** [flows/android-student.md](flows/android-student.md) ilk taslağı
+yazıldı — kullanıcı gözden geçirip onaylamalı (özellikle giriş/auth ekranı,
+`open-questions.md`'deki auth kararına bağlı). Ardından web panel akışları
+(`web-dershane-admin.md`, `web-rehberlik.md`, `web-ogretmen.md`) doldurulacak.
 
 **Kod durumu:** Henüz yok. Faz 0 bitmeden (bkz. faz dosyasındaki bitiş kriterleri)
 uygulama iskeleti kurulmayacak.

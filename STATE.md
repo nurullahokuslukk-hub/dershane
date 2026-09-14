@@ -12,6 +12,19 @@ En yeni girdi en üstte. Format için [CLAUDE.md](CLAUDE.md) → "STATE.md giri�
 
 ---
 
+## 2026-09-15 — Android öğrenci akışı ilk taslağı yazıldı
+
+[docs/flows/android-student.md](docs/flows/android-student.md) onboarding (splash,
+giriş, davet kodu, profil tamamlama, onay bekleniyor), ana kullanım (günlük
+bildirim, çalışma/soru kaydı, ödevler, deneme sonuçları, etüt), telefon kullanım
+senkronizasyonu (izin ekranı, durum) ve profil/ayarlar ekranlarıyla dolduruldu
+(`status: in-progress` — kullanıcı onayı bekliyor). Giriş ekranının kesin alanları
+auth yöntemi kararına bağlı, bu netleşmeden `done` işaretlenmeyecek. Git deposu
+başlatılıp ilk commit (`c739423`) atıldı.
+
+**Sırada:** Kullanıcı android-student.md'yi gözden geçirecek; onaylanırsa
+`web-dershane-admin.md`, `web-rehberlik.md`, `web-ogretmen.md` akışlarına geçilecek.
+
 ## 2026-09-15 — Proje iskeleti kuruldu (Faz 0 başladı)
 
 `urun-tanimi-v1.0.pdf` incelendi, `docs/source/` altına kopyalandı. Docs ailesi
