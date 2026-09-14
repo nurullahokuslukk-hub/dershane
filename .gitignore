@@ -1,0 +1,19 @@
+---
+title: Git ignore politikası
+description: Kaynak depoya girmemesi gereken yerel ve hassas dosyalar.
+status: active
+updated_at: 2026-09-15
+---
+
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+build/
+.next/
+.dart_tool/
+coverage/
+*.keystore
+*.jks
+.DS_Store
