@@ -73,6 +73,13 @@ görmesi.
 
 ## Ekran: Deneme Sonucu Gir
 
+> **Kapsam dışı bırakıldı (2026-09-16).** Kullanıcıyla netleşen gerçek iş akışında
+> deneme sonuçları sistem admin/dershane admin tarafından toplu Excel/CSV
+> yüklemesiyle giriliyor (bkz. `docs/decisions/0003-toplu-kayit-ve-claim-akisi.md`
+> ve ilgili plan), öğretmen tek tek/grid ile girmiyor. Bu ekran ileride gerçek
+> bir ihtiyaç olursa (örn. toplu yükleme mümkün olmayan küçük durumlar için
+> yedek yöntem) geri getirilebilir — şimdilik yapılmayacak.
+
 **Amaç:** Bir sınıf için deneme sonuçlarını toplu girmek (`mock_exam` +
 `mock_exam_subject_result`).
 **Erişim:** Öğretmen.

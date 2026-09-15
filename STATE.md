@@ -12,6 +12,48 @@ En yeni girdi en üstte. Format için [AGENTS.md](AGENTS.md) → "STATE.md giri�
 
 ---
 
+## 2026-09-16 — Plan modu: kapsamlı yol haritası + Faz A (yönetim CRUD) tamamlandı ve doğrulandı
+
+Kullanıcı plan moduna geçti, deneme sonuçları yükleme/gösterme + "diğer her şeyi
+de düşün" istedi. Explore + Plan alt-ajanlarıyla mevcut durum incelendi, kullanıcıyla
+4 soruda netleşen kararlar (deneme sonuçları sadece toplu Excel/CSV, sistem/dershane
+admin yükler, sadece net/trend gösterimi — otomatik risk skoru yok, sıra: CRUD →
+roster içe aktarma → deneme sonucu içe aktarma → rehberlik gösterimi) ışığında
+`~/.claude/plans/ba-ar-yla-al-t-ancak-t-m-serene-cocke.md` yazıldı ve onaylandı.
+Plan 4 fazlı: **A** dershane/şube/sınıf/personel yönetimi CRUD, **B** roster toplu
+içe aktarma, **C** deneme sonucu toplu içe aktarma, **D** rehberlik ekranında
+gösterme (sadece Deneme Sonuçları sekmesi, diğer sekmeler ayrı tur).
+
+**Faz A tamamlandı ve tarayıcıda gerçek Supabase'e karşı uçtan uca doğrulandı:**
+- `src/lib/auth/viewer.ts` (`getViewer`/`requireRole`/`checkRoleApi`),
+  `src/lib/tenant-context.ts` (`getActiveTenantId`/`resolveWriteTenantId` —
+  system_admin çoklu tenant için `active_tenant_id` cookie, asla yetki kararı
+  için güvenilmez), `src/lib/roster/claim-code.ts`.
+- `src/app/admin/layout.tsx` + `TenantSwitcher` + `AppShell`'e `nav`/`rightSlot`
+  eklendi (artık gerçek bir sidebar var).
+- CRUD: Dershane (tenant) oluşturma, Şube, Sınıf, Öğretmen (+ sınıf ataması),
+  Rehberlik (+ öğrenci ataması, sınıf bazlı toplu seçim), Doğrulanmamış Hesaplar
+  (kod görüntüle/kopyala/yenile), Dashboard gerçek sayılarla.
+- **Önemli teknik ders:** Supabase/PostgREST embed'lerinde `unique` constraint'i
+  olan FK'ler (örn. `account_claim_code.user_account_id`) tekil **nesne** döner,
+  `array` değil — ilk denemede bunu yanlış tipleyip boş görünen kod alanına yol
+  açtı, düzeltildi. İleride benzer embed'lerde bu ayrıma dikkat.
+- Uçtan uca test: dershane oluştur → şube → sınıf → öğretmen ekle (unclaimed +
+  claim code) → `/claim` ile gerçek hesap doğrulama → gerçek giriş → `/ogretmen`'e
+  doğru yönlendirme. Rehberlik oluşturma da (öğrencisiz) test edildi. Test verisi
+  (Cizre Test Dershanesi) sonra temizlendi.
+- `npm run build` her adımda temiz. Commit + push edilecek (sıradaki adım).
+
+**Migration borcu:** `supabase/migrations/0003_drop_invite_code.sql` yazıldı ama
+kullanıcı henüz SQL Editor'de çalıştırmadı — acil değil (hiçbir şey buna bağlı
+değil), müsait olduğunda Faz D'nin `0004_mock_exam_totals_view.sql`'iyle
+birlikte tek seferde istenecek.
+
+**Sırada:** Faz B — roster toplu içe aktarma (`xlsx` bağımlılığı,
+`src/lib/import/*`, iki şablon, önizleme/eşleştirme ekranı, `/admin/import/roster`).
+
+---
+
 ## 2026-09-16 — GitHub'a push edildi, claim akışı (0003) koda döküldü
 
 Repo [github.com/nurullahokuslukk-hub/dershane](https://github.com/nurullahokuslukk-hub/dershane)'a

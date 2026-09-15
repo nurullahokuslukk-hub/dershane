@@ -7,7 +7,7 @@ updated_at: 2026-09-15
 
 # Dershane Öğrenci Takip ve Erken Uyarı Sistemi — Doküman Merkezi
 
-Her oturuma buradan başla. Ayrıntılar için [CLAUDE.md](../CLAUDE.md).
+Her oturuma buradan başla. Ayrıntılar için [AGENTS.md](../AGENTS.md).
 
 ## Şu an neredeyiz
 
@@ -15,16 +15,15 @@ Her oturuma buradan başla. Ayrıntılar için [CLAUDE.md](../CLAUDE.md).
 kullanıcı tarafından onaylandı (2026-09-15), `status: done`.
 
 **Aktif faz:** [Faz 1 — MVP Backend & Web Panel](phases/phase-1-mvp-backend-web.md)
-(`status: in-progress`). Teknik mimari kararlaştırıldı:
-[decisions/0002-teknik-mimari.md](decisions/0002-teknik-mimari.md).
+(`status: in-progress`). Teknik mimari: [decisions/0002-teknik-mimari.md](decisions/0002-teknik-mimari.md).
+Toplu kayıt/claim modeli: [decisions/0003-toplu-kayit-ve-claim-akisi.md](decisions/0003-toplu-kayit-ve-claim-akisi.md).
 
-**Kod durumu:** Next.js proje iskeleti çalışıyor — auth (Supabase), rol bazlı
-yönlendirme, giriş/şifremi-unuttum ekranları, üç panel stub'ı (admin/rehberlik/
-öğretmen), tam DB şeması + RLS migration'ı hazır
-([supabase/migrations/0001_init.sql](../supabase/migrations/0001_init.sql)).
-Gerçek Supabase/Vercel hesabı **kullanıcı tarafından** açılmalı, adımlar:
-[guides/supabase-vercel-kurulum.md](guides/supabase-vercel-kurulum.md). Sıradaki
-kod işi: rol panellerinin gerçek içerikle doldurulması (flows/*.md'ye göre).
+**Kod durumu:** Auth (Supabase, claim akışı), rol bazlı yönlendirme çalışıyor.
+**Faz A (dershane/şube/sınıf/personel yönetimi) tamamlandı** — gerçek CRUD,
+tarayıcıda uçtan uca doğrulandı. Sırada: Faz B (roster toplu içe aktarma) →
+Faz C (deneme sonucu toplu içe aktarma) → Faz D (rehberlik ekranında gösterme).
+Detaylı plan ve gerekçe: STATE.md 2026-09-16 girdisi. Kurulum:
+[guides/supabase-vercel-kurulum.md](guides/supabase-vercel-kurulum.md).
 
 ## Doküman ailesi
 

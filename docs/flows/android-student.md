@@ -205,8 +205,9 @@ navigasyon/hub).
 ### Ekran: Deneme Sonuçları
 
 **Amaç:** Öğrencinin kendi deneme sınav sonuçlarını zaman içinde görmesi
-(`mock_exam_result`) — veri girişi burada değil, sadece görüntüleme (giriş
-öğretmen/admin tarafından yapılır, bkz. [web-ogretmen.md](web-ogretmen.md)).
+(`mock_exam_subject_result`) — veri girişi burada değil, sadece görüntüleme
+(sonuçlar sistem admin/dershane admin tarafından toplu yüklenir, bkz.
+[decisions/0003-toplu-kayit-ve-claim-akisi.md](../decisions/0003-toplu-kayit-ve-claim-akisi.md)).
 **Erişim:** Onaylı öğrenci (kendi verisi).
 
 **Gösterilen veri:**
