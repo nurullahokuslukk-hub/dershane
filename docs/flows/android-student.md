@@ -15,9 +15,10 @@ Kayıt akışının admin onayı ile kesişen kısmı ayrı belgede:
 "Öğrenci doğru dershane/sınıfa bağlanır" adımından sonrasını, yani öğrencinin
 uygulamayı **gündelik kullanımını** kapsar.
 
-> **İlk taslak — henüz onaylanmadı.** Auth yöntemi (giriş ekranı detayları) açık
-> soru olduğu için o ekranlar placeholder. Gözden geçirip düzelt, sonra
-> `status: done` yap.
+> **İlk taslak — henüz onaylanmadı.** Auth yöntemi
+> ([decisions/0001-auth-yontemi.md](../decisions/0001-auth-yontemi.md)) ve veri
+> modeli ([data-model.md](../data-model.md)) artık netleşti, ekranlar buna göre
+> güncellendi. Gözden geçirip düzelt, sonra `status: done` yap.
 
 ## Onboarding
 
@@ -33,22 +34,25 @@ uygulamayı **gündelik kullanımını** kapsar.
 
 ### Ekran: Giriş
 
-**Amaç:** Kayıtlı öğrencinin uygulamaya giriş yapması.
+**Amaç:** Kayıtlı öğrencinin uygulamaya giriş yapması. Yöntem:
+[decisions/0001-auth-yontemi.md](../decisions/0001-auth-yontemi.md) — e-posta **veya**
+telefon numarası + şifre.
 **Erişim:** Herkes.
 
-**Gösterilen veri:** —
+**Gösterilen veri / girilecek alanlar:**
+- Kimlik alanı (e-posta veya telefon — tek bir alan, `identifier_type` sunucu
+  tarafında otomatik algılanır)
+- Şifre
 
 **Aksiyonlar:**
 - Giriş yap → **Ana Sayfa**
+- "Şifremi unuttum" → e-posta ile sıfırlama linki (telefon-only kullanıcı ise
+  dershane admin'den şifre sıfırlama istenir)
 - "Davet kodum var, hesabım yok" → **Davet Kodu Girişi**
 
-**Açık nokta:** Giriş yöntemi (`open-questions.md` → "Öğrenci authentication yöntemi")
-netleşmeden bu ekranın alan listesi (kullanıcı adı/şifre mi, telefon+OTP mi)
-kesinleştirilemez. Karar verilince burası güncellenecek.
-
 **Hata/uç durumlar:**
-- Hatalı giriş → hata mesajı, deneme sayısı sınırlandırılabilir (bkz. güvenlik: rate
-  limiting, [CLAUDE.md](../../CLAUDE.md))
+- Hatalı giriş → hata mesajı, deneme sayısı sınırlandırılır (rate limiting, bkz.
+  [CLAUDE.md](../../CLAUDE.md))
 
 ### Ekran: Davet Kodu Girişi
 
@@ -119,10 +123,12 @@ navigasyon/hub).
 ### Ekran: Günlük Bildirim
 
 **Amaç:** Öğrencinin günün durumunu kısa şekilde bildirmesi (`daily_checkin`).
-**Erişim:** Onaylı öğrenci, günde 1 kez (ikinci girişte düzenleme moduna geçer).
+**Erişim:** Onaylı öğrenci, günde 1 kez (ikinci girişte düzenleme moduna geçer —
+`UNIQUE (tenant_id, student_id, checkin_date)`, bkz. [data-model.md](../data-model.md)).
 
-**Gösterilen veri / girilecek alanlar:** *(data-model.md ile netleştirilecek — örn.
-serbest metin mi, ruh hali/verimlilik skalası mı?)*
+**Gösterilen veri / girilecek alanlar:**
+- Bugün nasıl geçti (1-5 skala, `mood_score`) — hafif, opsiyonel öz-değerlendirme
+- Not (serbest metin, opsiyonel) — istemezse boş bırakabilir
 
 **Aksiyonlar:**
 - Gönder → **Ana Sayfa**'ya dön, rozet güncellenir
@@ -199,7 +205,11 @@ serbest metin mi, ruh hali/verimlilik skalası mı?)*
 **Erişim:** Onaylı öğrenci (kendi verisi).
 
 **Gösterilen veri:**
-- Deneme adı/tarihi, ders bazlı sonuçlar, zaman içindeki trend (basit liste/grafik)
+- Deneme adı/tarihi (`mock_exam`)
+- Ders bazlı sonuçlar: doğru/yanlış/boş/net (`mock_exam_subject_result`, bkz.
+  [data-model.md](../data-model.md))
+- Genel net (ders bazlı sonuçlardan hesaplanır, ayrı bir kayıt değildir)
+- Zaman içindeki trend (basit liste/grafik)
 
 **Hata/uç durumlar:**
 - Sonuç yoksa boş durum mesajı

@@ -73,6 +73,15 @@ Bir sonraki fazın kod/iskelet işine **başlamadan önce**, aktif fazın
 olmalı. Faz 0 tamamlanmadan (Android akışı + Web akışı + veri modeli belgelenmeden)
 gerçek uygulama kodu (Next.js/API/Android proje iskeleti) oluşturulmaz.
 
+## Bekleyen protokol kararı
+
+Kullanıcıyla checkpoint bazlı bağımsız review fikri konuşuldu (her faz teslimatı/
+commit öncesi taze bağlamla bu dosyadaki kurallara karşı kontrol) — mutabık
+kalındı ama henüz kurulmadı, kullanıcı "daha sonra" dedi. Detay:
+[docs/phases/phase-0-wireframes.md](docs/phases/phase-0-wireframes.md) → "Ertelenen
+karar". Bu konu tekrar gündeme geldiğinde burada somut bir protokol maddesi
+haline getirilecek.
+
 ## Kaynak doküman
 
 Ürünün tek yetkili tanımı: [docs/source/urun-tanimi-v1.0.pdf](docs/source/urun-tanimi-v1.0.pdf).

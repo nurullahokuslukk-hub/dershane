@@ -11,8 +11,6 @@ Kaynak: PDF §32. Bir soru çözüldüğünde: bu listeden kaldır → `docs/dec
 olarak kaydet (şablon: [decisions/0000-template.md](decisions/0000-template.md)) →
 [docs/index.md](index.md)'i güncelle.
 
-- [ ] **Öğrenci authentication yöntemi** — öğrenci kodu, davet kodu, e-posta/telefon,
-      şifre veya OTP kombinasyonlarından hangisi/hangileri kullanılacak?
 - [ ] **Telefon kullanım verisinin kesin granülerliği** — uygulama bazlı mı, kategori
       bazlı mı, gün içi saat dilimi kırılımı var mı?
 - [ ] **Her veri kategorisinin saklama süresi** — deneme sonucu, çalışma kaydı, telefon
