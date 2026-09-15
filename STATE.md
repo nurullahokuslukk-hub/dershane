@@ -8,9 +8,34 @@ updated_at: 2026-09-15
 # STATE
 
 Bu dosyaya sadece **ekleme** yapılır, geçmiş girdiler değiştirilmez/silinmez.
-En yeni girdi en üstte. Format için [CLAUDE.md](CLAUDE.md) → "STATE.md giriş formatı".
+En yeni girdi en üstte. Format için [AGENTS.md](AGENTS.md) → "STATE.md giriş formatı".
 
 ---
+
+## 2026-09-16 — AGENTS.md eklendi (Codex/ChatGPT ile ortak çalışma için), kural dosyası tek kaynağa indirildi
+
+Kullanıcı ChatGPT/Codex'i de bu projede geliştirmeye katmak istiyor. Bu araçlar
+`CLAUDE.md`'yi değil `AGENTS.md` konvansiyonunu okuyor; iki ayrı dosyada aynı
+kuralları elle senkron tutmak yerine, Next.js'in kendi `next dev`/`next build`
+sürecinin kullandığı yöntem benimsendi: **AGENTS.md artık tek kaynak** (eski
+CLAUDE.md içeriğinin birebir taşınmış hali + çoklu-araç koordinasyon notu:
+aynı anda paralel çalışmayın, sırayla commit/push edin). `CLAUDE.md` artık
+sadece `@AGENTS.md` içeriyor — Claude Code bunu otomatik olarak AGENTS.md'nin
+içeriğiyle doldurur. Bundan sonra kural değişiklikleri **AGENTS.md**'de yapılır,
+CLAUDE.md'ye dokunulmaz (Next.js'in kendi agent-rules bloğu zaten CLAUDE.md
+değil AGENTS.md'nin sonuna ekleniyor, bu yüzden de tutarlı).
+
+Kullanıcı ayrıca GitHub'a bir hesap bağladığını söyledi ama bu oturumda ne `gh`
+CLI ne de bir GitHub MCP bağlayıcısı bulunamadı, `git remote` boş — muhtemelen
+masaüstü uygulamasının başka bir yerinde yapılan bir bağlantı, bu oturumdan
+push edilemiyor. Kullanıcıdan boş bir GitHub reposu oluşturup linkini vermesi
+istendi.
+
+**Sırada:** GitHub repo linki gelince `git remote add` + push (onayla). Ayrıca
+kullanıcının önceki mesajında anlattığı iş akışı (system admin olarak kendisi
+tüm dershanelerin öğrenci/öğretmen verisini PDF'lerden toplu girecek) için
+somut bir plan/yaklaşım netleştirilecek — kullanıcı önceki çoktan seçmeli
+soruları yanıtlamadı, konuşarak netleştirilecek.
 
 ## 2026-09-15 — Migration hatası düzeltildi, .env.local gerçek Supabase bilgileriyle dolduruldu
 
