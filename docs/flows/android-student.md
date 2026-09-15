@@ -1,8 +1,8 @@
 ---
 title: "Akış: Android — Öğrenci"
 description: Öğrenci rolünün Android uygulamasındaki tüm ekranları ve akışı.
-status: done
-updated_at: 2026-09-15
+status: in-progress
+updated_at: 2026-09-16
 ---
 
 # Akış: Android — Öğrenci
@@ -15,10 +15,15 @@ Kayıt akışının admin onayı ile kesişen kısmı ayrı belgede:
 "Öğrenci doğru dershane/sınıfa bağlanır" adımından sonrasını, yani öğrencinin
 uygulamayı **gündelik kullanımını** kapsar.
 
-> **İlk taslak — henüz onaylanmadı.** Auth yöntemi
-> ([decisions/0001-auth-yontemi.md](../decisions/0001-auth-yontemi.md)) ve veri
-> modeli ([data-model.md](../data-model.md)) artık netleşti, ekranlar buna göre
-> güncellendi. Gözden geçirip düzelt, sonra `status: done` yap.
+> **Onboarding bölümü güncel değil.** [decisions/0003-toplu-kayit-ve-claim-akisi.md](../decisions/0003-toplu-kayit-ve-claim-akisi.md)
+> ile kayıt modeli değişti: öğrenci artık kendi başına "davet kodu ile kayıt
+> olup admin onayı bekleme" akışını izlemiyor — roster sistem admin/dershane
+> admin tarafından toplu yükleniyor, öğrenci sadece kendine verilen kodu
+> girip hesabını doğruluyor (web'deki `/claim` ekranının Android karşılığı).
+> Aşağıdaki "Davet Kodu Girişi / Profil Tamamlama / Onay Bekleniyor" ekranları
+> bu yüzden **eski model**; Faz 2 (Android inşası) başladığında yeniden
+> yazılacak. Ana kullanım bölümü (günlük bildirim, çalışma kaydı vb.)
+> etkilenmedi, geçerliliğini koruyor.
 
 ## Onboarding
 

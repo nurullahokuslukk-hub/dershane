@@ -2,41 +2,39 @@
 
 import { Suspense, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 
-// Ekran tanımı: docs/flows/web-common.md → "Ekran: Giriş"
-function LoginForm() {
+// Ekran: hesap doğrulama (claim). Roster toplu yüklendiğinde üretilen kod +
+// kişinin kendi e-posta/telefon + şifre ile ilk girişini tamamladığı ekran.
+function ClaimForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [code, setCode] = useState(searchParams.get("code") ?? "");
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const justClaimed = searchParams.get("claimed") === "1";
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    const supabase = createClient();
-    const isEmail = identifier.includes("@");
-
-    const { error: authError } = await supabase.auth.signInWithPassword(
-      isEmail
-        ? { email: identifier, password }
-        : { phone: identifier, password },
-    );
+    const res = await fetch("/api/claim", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, identifier, password }),
+    });
+    const data = await res.json();
 
     setLoading(false);
 
-    if (authError) {
-      setError("Giriş bilgileri hatalı. Lütfen tekrar deneyin.");
+    if (!res.ok) {
+      setError(data.error ?? "Bir şeyler ters gitti.");
       return;
     }
 
-    router.replace("/");
-    router.refresh();
+    router.replace("/login?claimed=1");
   }
 
   return (
@@ -46,17 +44,26 @@ function LoginForm() {
         className="w-full max-w-sm space-y-4 rounded-lg border border-black/10 p-6 dark:border-white/10"
       >
         <div>
-          <h1 className="text-xl font-semibold">Giriş Yap</h1>
+          <h1 className="text-xl font-semibold">Hesabını Doğrula</h1>
           <p className="text-sm text-black/60 dark:text-white/60">
-            Dershane Öğrenci Takip Sistemi
+            Dershanenden aldığın kodu gir, e-posta veya telefon numaranla bir
+            şifre belirle.
           </p>
         </div>
 
-        {justClaimed && (
-          <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-400">
-            Hesabın doğrulandı. Şimdi giriş yapabilirsin.
-          </p>
-        )}
+        <div className="space-y-1">
+          <label htmlFor="code" className="text-sm font-medium">
+            Kod
+          </label>
+          <input
+            id="code"
+            type="text"
+            required
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            className="w-full rounded-md border border-black/15 px-3 py-2 dark:border-white/15 dark:bg-transparent"
+          />
+        </div>
 
         <div className="space-y-1">
           <label htmlFor="identifier" className="text-sm font-medium">
@@ -66,7 +73,6 @@ function LoginForm() {
             id="identifier"
             type="text"
             required
-            autoComplete="username"
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
             className="w-full rounded-md border border-black/15 px-3 py-2 dark:border-white/15 dark:bg-transparent"
@@ -75,13 +81,13 @@ function LoginForm() {
 
         <div className="space-y-1">
           <label htmlFor="password" className="text-sm font-medium">
-            Şifre
+            Şifre belirle
           </label>
           <input
             id="password"
             type="password"
             required
-            autoComplete="current-password"
+            minLength={6}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full rounded-md border border-black/15 px-3 py-2 dark:border-white/15 dark:bg-transparent"
@@ -95,24 +101,17 @@ function LoginForm() {
           disabled={loading}
           className="w-full rounded-md bg-black px-3 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
         >
-          {loading ? "Giriş yapılıyor..." : "Giriş yap"}
+          {loading ? "Doğrulanıyor..." : "Hesabımı doğrula"}
         </button>
-
-        <a
-          href="/forgot-password"
-          className="block text-center text-sm text-black/60 hover:underline dark:text-white/60"
-        >
-          Şifremi unuttum
-        </a>
       </form>
     </main>
   );
 }
 
-export default function LoginPage() {
+export default function ClaimPage() {
   return (
     <Suspense fallback={null}>
-      <LoginForm />
+      <ClaimForm />
     </Suspense>
   );
 }

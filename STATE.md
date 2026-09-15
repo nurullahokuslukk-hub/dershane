@@ -12,6 +12,46 @@ En yeni girdi en üstte. Format için [AGENTS.md](AGENTS.md) → "STATE.md giri�
 
 ---
 
+## 2026-09-16 — GitHub'a push edildi, claim akışı (0003) koda döküldü
+
+Repo [github.com/nurullahokuslukk-hub/dershane](https://github.com/nurullahokuslukk-hub/dershane)'a
+push edildi (`origin/master`).
+
+Kullanıcı ile netleşen model uygulandı:
+[decisions/0003-toplu-kayit-ve-claim-akisi.md](docs/decisions/0003-toplu-kayit-ve-claim-akisi.md).
+`supabase/migrations/0002_account_claim_flow.sql` yazıldı: `user_account.id`
+artık `auth.users.id`'den bağımsız (yeni `auth_user_id` nullable kolon claim
+anında dolar), `auth_identifier`/`identifier_type` nullable, `status` artık
+`unclaimed`/`active`/`suspended`, yeni `account_claim_code` tablosu (eski
+`invite_code`'un yerini alıyor — kod artık sınıfa değil belirli bir roster
+satırına özel). RLS yardımcı fonksiyonları `auth_user_id` üzerinden
+güncellendi.
+
+Kod tarafı: `src/lib/supabase/admin.ts` (service_role server client),
+`src/app/claim/page.tsx` + `src/app/api/claim/route.ts` (kod + e-posta/telefon
++ şifre → hesap aktifleştirme), `src/proxy.ts`'e `/claim` ve `/api/claim`
+public path olarak eklendi, `src/app/page.tsx`/`admin`/`rehberlik`/`ogretmen`
+sayfalarındaki sorgular `id` yerine `auth_user_id` kullanacak şekilde
+güncellendi, `scripts/create-system-admin.mjs` yeni şemaya uyarlandı.
+`npm run build` temiz geçti. Docs güncellendi: `data-model.md`,
+`student-registration-flow.md` (tamamen yeniden yazıldı), `web-dershane-admin.md`
+("Doğrulanmamış Hesaplar" + "Toplu İçe Aktar" ekranları — ikincisi henüz
+tasarlanmadı), `android-student.md`'ye eskimiş-olduğu notu eklendi (Faz 2'de
+yeniden yazılacak).
+
+**Henüz yapılmadı / sırada:**
+1. Kullanıcı `0002_account_claim_flow.sql`'i Supabase SQL Editor'de
+   çalıştıracak (ben doğrudan SQL çalıştıramıyorum, sadece service_role ile
+   REST/Auth API'ye erişimim var).
+2. Migration sonrası uçtan uca test: mevcut system_admin girişi hâlâ
+   çalışıyor mu (auth_user_id backfill ile), ve tam claim akışı (roster satırı
+   + kod → `/claim` → giriş) manuel olarak (SQL ile örnek roster satırı
+   eklenerek) doğrulanacak.
+3. **Toplu İçe Aktar ekranının kendisi henüz yazılmadı** — bu asıl istenen
+   özellik, claim akışı sadece onun ön koşuluydu.
+
+---
+
 ## 2026-09-16 — AGENTS.md eklendi (Codex/ChatGPT ile ortak çalışma için), kural dosyası tek kaynağa indirildi
 
 Kullanıcı ChatGPT/Codex'i de bu projede geliştirmeye katmak istiyor. Bu araçlar

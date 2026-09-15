@@ -16,22 +16,18 @@ export default async function HomePage() {
   const { data: account } = await supabase
     .from("user_account")
     .select("role, status, full_name")
-    .eq("id", user.id)
+    .eq("auth_user_id", user.id)
     .single();
 
   if (!account) {
-    // Kayıt akışı tamamlanmamış (user_account satırı yok) — bkz.
-    // docs/flows/student-registration-flow.md
+    // auth kullanıcısı var ama eşleşen user_account yok — beklenmeyen durum
     redirect("/login");
   }
 
-  if (account.status !== "active") {
+  if (account.status === "suspended") {
     return (
       <main className="flex flex-1 items-center justify-center p-6 text-center">
-        <p>
-          Hesabınız onay bekliyor. Dershane yönetimi onayladığında giriş
-          yapabilirsiniz.
-        </p>
+        <p>Hesabınız askıya alındı. Dershane yönetimiyle iletişime geçin.</p>
       </main>
     );
   }

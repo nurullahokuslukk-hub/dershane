@@ -1,7 +1,7 @@
 ---
 title: "Akış: Web — Dershane Admin"
 description: Dershane Admin rolünün web panelindeki tüm ekranları ve akışı.
-status: done
+status: in-progress
 updated_at: 2026-09-15
 ---
 
@@ -70,7 +70,7 @@ sayısı.
 
 **Aksiyonlar:**
 - Bir öğrenciye tıkla → **Öğrenci Detayı**
-- "Davet kodu oluştur" → **Davet Kodu Oluştur**
+- "Toplu içe aktar" → **Toplu İçe Aktar**
 
 ## Ekran: Öğrenci Detayı (admin görünümü)
 
@@ -91,32 +91,40 @@ değil**, bu ekran sadece hesap/idari yönetim içindir (akademik detay için
   [decisions/0001-auth-yontemi.md](../decisions/0001-auth-yontemi.md))
 - Cihaz kaydını sil (öğrenci cihaz değiştirdiyse, PDF §30)
 
-## Ekran: Bekleyen Onaylar
+## Ekran: Doğrulanmamış Hesaplar
 
-**Amaç:** Davet koduyla kayıt olmuş ama henüz onaylanmamış öğrencileri onaylamak/
-reddetmek (PDF §7 adım 7-8). Detay akış:
-[student-registration-flow.md](student-registration-flow.md).
+**Amaç:** Roster'dan içe aktarılmış ama kişi henüz kendi hesabını claim
+etmemiş kayıtları görmek (PDF §7'nin yerini alan yeni model — bkz.
+[decisions/0003-toplu-kayit-ve-claim-akisi.md](../decisions/0003-toplu-kayit-ve-claim-akisi.md)
+ve [student-registration-flow.md](student-registration-flow.md)). Artık bir
+"onay" adımı yok — roster'a girmiş olmak zaten yeterli, kişi kendi kodunu
+girdiğinde otomatik aktif olur. Bu ekran sadece görünürlük/takip içindir.
 **Erişim:** Dershane Admin.
 
 **Gösterilen veri:**
-- Bekleyen öğrenci listesi: ad soyad, başvurulan sınıf/şube, başvuru tarihi
+- `status: unclaimed` olan kullanıcılar: ad soyad, rol, sınıf/şube, claim
+  kodunun süresi
 
 **Aksiyonlar:**
-- Onayla → öğrenci `status: active` olur, öğrenci tarafında **Onay Bekleniyor**
-  ekranından **Ana Sayfa**'ya geçiş tetiklenir
-- Reddet (opsiyonel red nedeni) → öğrenciye bildirilir
+- Kodu görüntüle/kopyala (dershaneye tekrar iletmek için)
+- Süresi dolmuş kodu yenile
 
-## Ekran: Davet Kodu Oluştur
+## Ekran: Toplu İçe Aktar
 
-**Amaç:** Yeni öğrenci daveti için kod/link üretmek (`invite_code`).
-**Erişim:** Dershane Admin.
+**Amaç:** Dershaneden gelen PDF'teki öğrenci/öğretmen listesini (ad, soyad,
+sınıf, rol, hangi öğretmen hangi sınıfa giriyor) tek seferde yüklemek —
+sistemin ana veri girişi yöntemi (tek tek "öğrenci ekle" formu yerine).
+**Erişim:** Dershane Admin, Sistem Admin.
 
-**Gösterilen veri / alanlar:**
-- Hedef şube, hedef sınıf (opsiyonel — kayıt sırasında da seçilebilir)
-- Geçerlilik süresi
+**Durum:** **Henüz tasarlanmadı/yazılmadı** — sıradaki iş. Beklenen akış:
+CSV/Excel şablonu indir → doldur → yükle → sistem satır satır önizleme +
+hata gösterir (örn. eksik sınıf) → onaylanırsa her satır için `user_account`
+(`unclaimed`) + `account_claim_code` oluşturulur.
 
 **Aksiyonlar:**
-- Oluştur → kod/link gösterilir, kopyalama/paylaşma aksiyonu
+- Şablon indir
+- Dosya yükle → önizleme
+- Onayla → toplu oluşturma
 
 ## Ekran: Öğretmen Listesi
 

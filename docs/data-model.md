@@ -48,14 +48,19 @@ PDF §13 tenant configuration/feature flag için).
 `id`, `tenant_id`, `branch_id`, `name` (örn. "12-A"), `academic_year`.
 
 ### `user_account`
-`id` (= `auth.users.id`, Supabase Auth — **şifre burada değil, Supabase Auth
-tarafından yönetilir**, bkz. [decisions/0002-teknik-mimari.md](decisions/0002-teknik-mimari.md)),
-`tenant_id` (**nullable, yalnızca `role = system_admin` için** — system admin
-tenant'lar üstü çalışır; diğer tüm roller için `NOT NULL` CHECK constraint'i ile
-zorunlu), `role` (system_admin/dershane_admin/rehberlik/ogretmen/ogrenci),
-`auth_identifier`, `identifier_type` (email/phone), `full_name`,
-`status` (pending/active/suspended). Auth kararı:
-[decisions/0001-auth-yontemi.md](decisions/0001-auth-yontemi.md).
+`id` (bağımsız uuid — **artık `auth.users.id` ile aynı değil**, bkz.
+[decisions/0003-toplu-kayit-ve-claim-akisi.md](decisions/0003-toplu-kayit-ve-claim-akisi.md)),
+`auth_user_id` (nullable, → `auth.users.id`; roster içe aktarıldığında boş,
+kişi hesabını claim ettiğinde dolar — **şifre burada değil, Supabase Auth
+tarafından yönetilir**), `tenant_id` (**nullable, yalnızca `role = system_admin`
+için** — system admin tenant'lar üstü çalışır; diğer tüm roller için
+`NOT NULL` CHECK constraint'i ile zorunlu), `role`
+(system_admin/dershane_admin/rehberlik/ogretmen/ogrenci), `auth_identifier`
+(nullable — claim'e kadar boş), `identifier_type` (email/phone, nullable),
+`full_name`, `status` (**unclaimed**/active/suspended — roster'dan geldiğinde
+`unclaimed`, claim tamamlanınca `active`). Auth yöntemi kararı:
+[decisions/0001-auth-yontemi.md](decisions/0001-auth-yontemi.md); kayıt/claim
+akışı: [decisions/0003-toplu-kayit-ve-claim-akisi.md](decisions/0003-toplu-kayit-ve-claim-akisi.md).
 
 ### `student_profile`
 `id`, `tenant_id`, `user_id` (FK → user_account, role=ogrenci), `class_group_id`,
@@ -75,10 +80,15 @@ atandığı sınıfları/öğrencileri görür.
 atandığı öğrencileri görür (sınıf değil öğrenci bazlı — PDF §30 "rehberlik bütün
 öğrencileri görebilir mi? → Hayır, yalnızca yetkili olduğu öğrencileri").
 
-### `invite_code`
-`id`, `tenant_id`, `code`, `branch_id`, `class_group_id` (nullable), `status`
-(active/used/expired), `created_by_user_id`, `expires_at`, `used_by_user_id`
-(nullable).
+### `account_claim_code`
+`id`, `tenant_id`, `user_account_id` (FK → user_account, **unique** — bir roster
+satırı için tek kod), `code`, `status` (active/used/expired), `expires_at`
+(varsayılan 30 gün). Roster içe aktarıldığında her satır için otomatik üretilir;
+kişi [`/claim`](../src/app/claim/page.tsx) ekranında bu kodu girip kendi
+e-posta/telefon + şifresini belirleyerek `user_account`'unu aktifleştirir
+(bkz. [decisions/0003-toplu-kayit-ve-claim-akisi.md](decisions/0003-toplu-kayit-ve-claim-akisi.md)).
+Eski `invite_code` tasarımı (sınıfa genel davet linki) bu tabloyla değiştirildi
+— artık her kod belirli bir roster satırına özel.
 
 ## Deneme sınavları
 

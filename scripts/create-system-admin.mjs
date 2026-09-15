@@ -1,7 +1,9 @@
 // Kullanım: node --env-file=.env.local scripts/create-system-admin.mjs <email> <şifre> ["Ad Soyad"]
 // service_role anahtarı kullanır (RLS'i bypass eder) — yalnızca lokal/tek
-// seferlik bootstrap için, normal kayıt akışı davet koduyla çalışır
-// (bkz. docs/flows/student-registration-flow.md).
+// seferlik bootstrap için. Normal kullanıcılar toplu roster + claim code
+// akışıyla kendi hesaplarını doğrular (bkz. src/app/api/claim/route.ts);
+// system_admin'in bağlı olduğu bir tenant/roster olmadığı için burada
+// doğrudan oluşturuluyor.
 import { createClient } from "@supabase/supabase-js";
 
 const [, , email, password, fullName = "Sistem Admin"] = process.argv;
@@ -30,7 +32,7 @@ if (authError) {
 }
 
 const { error: dbError } = await supabase.from("user_account").insert({
-  id: authData.user.id,
+  auth_user_id: authData.user.id,
   tenant_id: null,
   role: "system_admin",
   auth_identifier: email,

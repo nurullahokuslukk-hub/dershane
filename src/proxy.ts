@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // Her istekte Supabase oturum çerezini tazeler ve girişsiz kullanıcıyı
 // /login'e yönlendirir. Rol bazlı yönlendirme (dershane_admin/rehberlik/
 // ogretmen) sayfa katmanında yapılır — bkz. src/app/page.tsx.
-const PUBLIC_PATHS = ["/login", "/forgot-password"];
+const PUBLIC_PATHS = ["/login", "/forgot-password", "/claim"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -52,6 +52,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/health).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/health|api/claim).*)",
   ],
 };

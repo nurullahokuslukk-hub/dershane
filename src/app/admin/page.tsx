@@ -15,7 +15,7 @@ export default async function AdminDashboardPage() {
   const { data: account } = await supabase
     .from("user_account")
     .select("role, full_name")
-    .eq("id", user.id)
+    .eq("auth_user_id", user.id)
     .single();
 
   if (!account || !["dershane_admin", "system_admin"].includes(account.role)) {

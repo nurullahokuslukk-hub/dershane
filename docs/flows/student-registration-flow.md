@@ -1,65 +1,65 @@
 ---
-title: "Akış: Öğrenci Kayıt & Onay"
-description: Davet kodundan admin onayına kadar, admin ve öğrenci tarafını birlikte kapsayan uçtan uca akış.
-status: done
-updated_at: 2026-09-15
+title: "Akış: Toplu Roster Kaydı & Hesap Doğrulama"
+description: Sistem admin'in dershane PDF'lerinden toplu öğrenci/öğretmen girmesinden, kişinin kendi hesabını claim etmesine kadar uçtan uca akış.
+status: in-progress
+updated_at: 2026-09-16
 ---
 
-# Akış: Öğrenci Kayıt & Onay
+# Akış: Toplu Roster Kaydı & Hesap Doğrulama
 
-Bu belge çift taraflı (admin + öğrenci) olduğu için her adımda "kim, hangi ekranda"
-belirtilir; ekranların kendisi ilgili rol dosyasında tanımlı, burada sadece sıra ve
-geçiş koşulları var. Kaynak: PDF §7, §30.
+**Bu akış [decisions/0003-toplu-kayit-ve-claim-akisi.md](../decisions/0003-toplu-kayit-ve-claim-akisi.md)
+ile eski davet-kodu-self-servis modelinin yerini aldı.** Kayıt öğrenciden değil
+sistem admin'den (veya dershane admin'den) başlıyor: PDF'ten gelen roster
+(isim, sınıf, öğretmen ataması) toplu girilir, sonra her kişi kendi hesabını
+kendi bilgileriyle doğrular.
 
 ## Uçtan uca akış
 
-1. **Dershane sisteme alınır.** *(system admin — Faz 1'de detaylandırılacak,
-   MVP'de manuel/system admin panelinden)*
-2. **Dershane admin hesabı oluşturulur.** *(system admin)*
-3. **Şube ve sınıflar oluşturulur.**
-   *(Dershane Admin → [web-dershane-admin.md](web-dershane-admin.md) "Şube Ekle/
-   Düzenle" → "Sınıf Ekle/Düzenle")*
-4. **Öğrenci davet kodu/linki oluşturulur.**
-   *(Dershane Admin → [web-dershane-admin.md](web-dershane-admin.md) "Davet Kodu
-   Oluştur" — hedef şube/sınıf seçilir, kod üretilir)*
-5. **Öğrenci davet ile kayıt olur.**
-   *(Öğrenci, Android → [android-student.md](android-student.md) "Davet Kodu
-   Girişi" — deep link ile geldiyse kod otomatik dolu, kod geçerliliği kontrol
-   edilir)*
-6. **Öğrenci bilgilerini tamamlar.**
-   *(Öğrenci, Android → [android-student.md](android-student.md) "Profil
-   Tamamlama" — ad/soyad/doğum tarihi/iletişim bilgisi girilir, `student_profile`
-   + `user_account` (status: pending) oluşturulur)*
-7. **Dershane admin kontrol eder.**
-   *(Dershane Admin → [web-dershane-admin.md](web-dershane-admin.md) "Bekleyen
-   Onaylar" — öğrenci burada listede görünür; öğrenci taraf ise
-   [android-student.md](android-student.md) "Onay Bekleniyor" ekranında bekler)*
-8. **Admin öğrenciyi onaylar (veya reddeder).**
-   *(Dershane Admin → "Bekleyen Onaylar" ekranındaki "Onayla"/"Reddet" aksiyonu —
-   onaylanırsa `user_account.status: active` olur)*
-9. **Öğrenci doğru dershane/sınıfa bağlanır.**
-   *(Sistem — `student_profile.class_group_id`/`branch_id` davet kodundan
-   itibaren zaten set edilmiştir; onay sadece durumu aktifleştirir. Öğrenci
-   tarafında bir sonraki senkronizasyon/yenilemede "Onay Bekleniyor" ekranından
-   **Ana Sayfa**'ya geçiş tetiklenir.)*
+1. **Dershane sisteme alınır.** *(system admin, MVP'de manuel/system admin
+   panelinden)*
+2. **Şube ve sınıflar oluşturulur.**
+   *(Sistem admin veya Dershane Admin → [web-dershane-admin.md](web-dershane-admin.md)
+   "Şube Ekle/Düzenle" → "Sınıf Ekle/Düzenle")*
+3. **Roster toplu içe aktarılır.**
+   *(Sistem admin veya Dershane Admin → "Toplu İçe Aktar" ekranı, **henüz
+   yazılmadı** — bkz. "Sırada" bölümü. PDF'teki ad/soyad/sınıf/rol/öğretmen-
+   sınıf ataması bir CSV/Excel şablonuna aktarılıp yüklenir.)* Her satır için:
+   - `user_account` oluşturulur, `status: unclaimed`, `auth_user_id: null`
+     (henüz giriş bilgisi yok)
+   - Öğrenciyse `student_profile` oluşturulur
+   - Öğretmense `teacher_class_assignment` oluşturulur
+   - Her satır için bir `account_claim_code` üretilir (30 gün geçerli)
+4. **Doğrulama kodu kişiye iletilir.**
+   *(Dershane üzerinden — kağıt liste, WhatsApp, vs.; sistemin kendisi şu an
+   bunu otomatik göndermiyor, bkz. open-questions.md "Bildirim sisteminin
+   ayrıntıları")*
+5. **Kişi hesabını doğrular (claim).**
+   *(Öğrenci/Öğretmen → [`/claim`](../../src/app/claim/page.tsx) — kodu girer,
+   kendi e-posta/telefon + şifresini belirler → `POST /api/claim`)*
+6. **Hesap aktifleşir.**
+   *(Sistem — `user_account.auth_user_id` doldurulur, `status: active` olur,
+   `account_claim_code.status: used` olur → kişi artık **Giriş** ekranından
+   normal şekilde giriş yapabilir)*
 
-## Uç durumlar (PDF §30)
+## Uç durumlar
 
-- **Öğrenci yanlış dershaneye kayıt olursa?** → Davet kodu belirli bir tenant'a
-  bağlı olduğu için zaten mümkün değil; admin onay adımı (7-8) ikinci bir
-  savunma katmanıdır.
-- **Öğrenci uygulamayı silerse?** → `user_account`/`student_profile` sunucuda
-  kalır, otomatik silinmez. Yeniden kurulumda **Giriş** ekranından devam eder.
-- **Öğrenci telefonunu değiştirirse?** → Veri `student_id`'ye bağlı, cihaza değil
-  (`student_device` ayrı tablo). Yeni cihazdan giriş yapması yeterli.
-- **İki Android cihazı varsa?** → `student_device` bire-çok ilişki, her cihaz ayrı
-  kayıt.
-- **Davet kodu süresi dolmuşsa/kullanılmışsa?** → "Davet Kodu Girişi" ekranında
-  hata, admin'den yeni kod istenmesi gerekir.
+- **Kod başka biri tarafından ele geçirilirse?** → Kod tek kullanımlıktır
+  (`status: used` sonrası tekrar kullanılamaz); süre dolarsa (`expires_at`)
+  yeni kod üretilmesi gerekir.
+- **Kişi hesabını hiç doğrulamazsa?** → `user_account` `unclaimed` kalır,
+  hiçbir zorunluluk/otomatik silme yok — dershane admin istediğinde yeni kod
+  üretebilir (arayüz henüz yok, bkz. Sırada).
+- **Öğrenci telefonunu değiştirirse?** → Veri `student_id`'ye bağlı, cihaza
+  değil (`student_device` ayrı tablo). Claim tek seferlik olduğu için bu durumu
+  etkilemez.
+- **İki Android cihazı varsa?** → `student_device` bire-çok ilişki, her cihaz
+  ayrı kayıt.
+- **Aynı roster verisi yanlışlıkla iki kez içe aktarılırsa?** → Henüz bir
+  tekilleştirme kuralı yok (örn. isim+sınıf bazlı) — toplu içe aktarma
+  ekranı tasarlanırken çözülecek açık nokta.
 
-## Bitiş durumu
+## Sırada
 
-İçerik dolduruldu; referans verdiği ekranlar (`web-dershane-admin.md` "Bekleyen
-Onaylar"/"Davet Kodu Oluştur", `android-student.md` "Davet Kodu Girişi"/"Profil
-Tamamlama"/"Onay Bekleniyor") ile birlikte kullanıcı onayı bekliyor. Onaylanınca
-`status: done` yapılacak.
+Bu belge claim akışının kendisini (kod → hesap) kapsıyor; **roster toplu içe
+aktarma ekranının kendisi (CSV/Excel yükleme, önizleme, hata gösterimi) henüz
+tasarlanmadı/yazılmadı.** Bir sonraki adım budur.
