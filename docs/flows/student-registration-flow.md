@@ -1,7 +1,7 @@
 ---
 title: "Akış: Öğrenci Kayıt & Onay"
 description: Davet kodundan admin onayına kadar, admin ve öğrenci tarafını birlikte kapsayan uçtan uca akış.
-status: in-progress
+status: done
 updated_at: 2026-09-15
 ---
 

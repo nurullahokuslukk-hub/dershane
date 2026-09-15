@@ -1,7 +1,7 @@
 ---
 title: "Faz 0 — Akış & Veri Modeli Belgelendirmesi"
 description: Kod yazılmadan önce tüm ekran akışlarının ve veri modelinin markdown olarak belgelenmesi.
-status: in-progress
+status: done
 updated_at: 2026-09-15
 ---
 
@@ -48,8 +48,9 @@ konuyu kesinleştirmek, böylece Faz 1'e "ne inşa edeceğimizi bilerek" girmek.
 - [x] Bu süreçte ortaya çıkan belirsizlikler `open-questions.md`'ye eklendi / auth
       sorusu [decisions/0001-auth-yontemi.md](../decisions/0001-auth-yontemi.md)
       ile çözüldü
-- [ ] Kullanıcı tüm `flows/*.md` ve `data-model.md`'yi gözden geçirip onayladı
-- [ ] `status: done` olarak işaretlenmiş
+- [x] Kullanıcı tüm `flows/*.md` ve `data-model.md`'yi gözden geçirip onayladı
+      (2026-09-15)
+- [x] `status: done` olarak işaretlenmiş
 
 Bittiğinde `docs/index.md`'deki "Aktif faz" satırı Faz 1'e güncellenir.
 

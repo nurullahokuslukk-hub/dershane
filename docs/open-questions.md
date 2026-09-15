@@ -25,8 +25,6 @@ olarak kaydet (şablon: [decisions/0000-template.md](decisions/0000-template.md)
 - [ ] **Fiyatlandırma** — öğrenci başına / aktif öğrenci / paket bazlı / aylık / yıllık
       modellerinden hangisi, hangi rakamlarla.
 - [ ] **Bildirim sisteminin ayrıntıları** — push/SMS/e-posta, kime, hangi tetikleyicide.
-- [ ] **Kesin hosting/database sağlayıcısı** — Vercel + ayrı DB sağlayıcısı mı, tek
-      platform mı; ücretsiz plan sınırlarının aşılacağı varsayımıyla değerlendirilecek.
 
 ## Bu listeye ne zaman soru eklenir?
 

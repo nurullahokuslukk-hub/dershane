@@ -1,7 +1,7 @@
 ---
 title: "Akış: Android — Öğrenci"
 description: Öğrenci rolünün Android uygulamasındaki tüm ekranları ve akışı.
-status: in-progress
+status: done
 updated_at: 2026-09-15
 ---
 

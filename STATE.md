@@ -12,6 +12,94 @@ En yeni girdi en üstte. Format için [CLAUDE.md](CLAUDE.md) → "STATE.md giri�
 
 ---
 
+## 2026-09-15 — Migration hatası düzeltildi, .env.local gerçek Supabase bilgileriyle dolduruldu
+
+Kullanıcı Supabase projesini kurdu (proje ref: `jswuhyejyxzfewziicbv`) ve
+`0001_init.sql`'i çalıştırdı, hata aldı: `relation "public.user_account" does
+not exist` — `current_tenant_id()`/`is_system_admin()` fonksiyonları dosyanın
+başında, `user_account` tablosu henüz oluşturulmadan tanımlanmıştı. Fonksiyonlar
+dosyanın sonuna, tüm tablolardan sonra (RLS bölümünün hemen öncesine) taşındı —
+artık `user_account`'a referans verdiklerinde tablo zaten var.
+
+`.env.local` kullanıcının verdiği anon/service_role anahtarlarıyla dolduruldu.
+Kullanıcı "Project URL" olarak dashboard linkini
+(`supabase.com/dashboard/project/...`) verdi — asıl API URL'i (`https://
+jswuhyejyxzfewziicbv.supabase.co`) proje ref'inden inşa edildi, dashboard
+linki API URL'i olarak kullanılamaz.
+
+**Sırada:** Kullanıcı düzeltilmiş `0001_init.sql`'i SQL Editor'de tekrar
+çalıştıracak. Ardından `npm run dev` ile gerçek Supabase'e karşı uçtan uca test
+edilecek — ama henüz hiçbir kullanıcı yok (ilk system_admin nasıl
+oluşturulacak, sıradaki karar).
+
+## 2026-09-15 — Next.js proje iskeleti kuruldu, çalıştığı doğrulandı
+
+`create-next-app` ile scaffold (TypeScript, App Router, Tailwind) alınıp mevcut
+docs/CLAUDE.md/STATE.md/.git korunarak projeye entegre edildi
+(`.gitignore` Next.js konvansiyonlarıyla birleştirilerek yeniden yazıldı — eski
+frontmatter'lı format korundu). Eklenenler:
+
+- `supabase/migrations/0001_init.sql` — data-model.md'deki tüm tablolar, ortak
+  yardımcı fonksiyonlar (`current_tenant_id()`, `is_system_admin()`), her
+  tenant-scoped tabloda RLS tenant izolasyon politikası.
+- `src/lib/supabase/{client,server}.ts` — Supabase browser/server client'ları
+  (`@supabase/ssr`).
+- `src/proxy.ts` (Next.js 16'da `middleware.ts` yerine `proxy.ts` — deprecation
+  uyarısı üzerine `@next/codemod` ile değil elle taşındı) — oturum tazeleme +
+  girişsiz kullanıcıyı `/login`'e yönlendirme.
+- `src/app/login`, `/forgot-password` — docs/flows/web-common.md'ye uygun.
+- `src/app/page.tsx` — role göre `/admin`, `/rehberlik`, `/ogretmen`'e
+  yönlendirme merkezi; öğrenci rolü ve onay bekleyen hesaplar için mesaj.
+- `src/app/{admin,rehberlik,ogretmen}/page.tsx` — rol korumalı stub dashboard'lar
+  (`AppShell` ortak layout bileşeni: topbar + çıkış).
+- `.env.example`, `docs/guides/supabase-vercel-kurulum.md` — kullanıcının kendi
+  açması gereken Supabase/Vercel hesapları için adım adım rehber (hesap açma
+  bana yasak bir aksiyon, kullanıcı yapmalı).
+- `data-model.md` düzeltildi: `user_account.password_hash` kaldırıldı — şifre
+  Supabase Auth (`auth.users`) tarafından yönetiliyor, ayrıca saklanmıyor.
+
+`npm run build` temiz geçti, `npm run dev` ile tarayıcıda doğrulandı: `/` →
+`/login` yönlendirmesi, giriş formu, şifremi-unuttum formu, `/api/health`
+çalışıyor. Gerçek Supabase kimlik bilgileri olmadığı için uçtan uca giriş
+(gerçek kullanıcıyla) henüz test edilmedi — bu, kullanıcı Supabase projesini
+kurunca yapılacak.
+
+**Sırada:** Kullanıcı `docs/guides/supabase-vercel-kurulum.md` adımlarını
+tamamlayacak (Supabase projesi + migration + `.env.local`). Ardından: ilk
+system_admin kullanıcısının nasıl oluşturulacağı kararlaştırılacak, sonra rol
+panellerinin gerçek içeriği (dashboard verileri, CRUD ekranları) doldurulacak.
+
+## 2026-09-15 — Teknik mimari kararlaştırıldı
+
+[decisions/0002-teknik-mimari.md](docs/decisions/0002-teknik-mimari.md): tek
+Next.js uygulaması (TypeScript, App Router, web + API Route Handler'lar) — ayrı
+backend servisi yok; Supabase (managed Postgres + Auth), Vercel hosting, ikisi de
+EU/Frankfurt bölgesinde (KVKK için "orta yol": kesin hukuki karar Faz 3'te, ama
+şimdiden AB içi barındırma). Supabase Auth, ADR 0001'deki e-posta/telefon+şifre
+kararıyla native uyumlu olduğu için kendi auth altyapımızı yazmıyoruz. RLS,
+backend authorization'ın yerine değil yanına ikinci savunma katmanı olarak
+eklenecek. Offline senkronizasyon: Room/SQLite kuyruk + WorkManager, API'ye
+`client_record_id` ile idempotent gönderim (mekanizma zaten data-model.md'de
+tanımlıydı, burada hangi bileşenin uygulayacağı netleşti).
+
+`open-questions.md`'den "Kesin hosting/database sağlayıcısı" kaldırıldı.
+`phase-1-mvp-backend-web.md` bu karara göre güncellendi. `CLAUDE.md`'ye kısa bir
+"Teknik yığın" özeti eklendi.
+
+**Sırada:** Next.js proje iskeletinin kurulması (uygulama, Supabase bağlantısı,
+ilk migration'lar) — bu noktadan sonra artık kod yazılıyor olacak.
+
+## 2026-09-15 — Faz 0 onaylandı, Faz 1 başladı
+
+Kullanıcı tüm `flows/*.md` ve `data-model.md`'yi onayladı. `phase-0-wireframes.md`
+`status: done`, tüm flow dosyaları ve `data-model.md` `status: done` olarak
+işaretlendi. `docs/index.md` aktif faz Faz 1'e güncellendi, `phase-1-mvp-backend-
+web.md` `status: in-progress`.
+
+**Sırada:** Teknik mimari kararları — backend dili/framework, hosting/database
+sağlayıcısı, offline senkronizasyon protokolü (PDF §10, §32 madde 9 "kesin
+hosting/database sağlayıcısı" açık sorusunu da çözecek).
+
 ## 2026-09-15 — Web panel akışları ve kayıt akışı dolduruldu, Faz 0 içerik olarak tamam
 
 `docs/flows/web-common.md` (ortak giriş + layout, tekrar önlemek için ayrı dosya),

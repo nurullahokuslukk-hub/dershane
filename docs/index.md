@@ -11,16 +11,20 @@ Her oturuma buradan başla. Ayrıntılar için [CLAUDE.md](../CLAUDE.md).
 
 ## Şu an neredeyiz
 
-**Aktif faz:** [Faz 0 — Akış & Veri Modeli Belgelendirmesi](phases/phase-0-wireframes.md)
-(`status: in-progress`)
+**Faz 0** ([Akış & Veri Modeli Belgelendirmesi](phases/phase-0-wireframes.md))
+kullanıcı tarafından onaylandı (2026-09-15), `status: done`.
 
-**Sıradaki iş:** Faz 0'ın tüm içerik çıktıları (Android akışı, web akışları —
-common/admin/rehberlik/öğretmen, kayıt akışı, veri modeli, auth kararı) dolduruldu.
-Kalan tek şey **kullanıcı onayı** — onaylanınca faz `status: done` olacak ve Faz
-1'e (backend + web MVP) geçilecek.
+**Aktif faz:** [Faz 1 — MVP Backend & Web Panel](phases/phase-1-mvp-backend-web.md)
+(`status: in-progress`). Teknik mimari kararlaştırıldı:
+[decisions/0002-teknik-mimari.md](decisions/0002-teknik-mimari.md).
 
-**Kod durumu:** Henüz yok. Faz 0 bitmeden (bkz. faz dosyasındaki bitiş kriterleri)
-uygulama iskeleti kurulmayacak.
+**Kod durumu:** Next.js proje iskeleti çalışıyor — auth (Supabase), rol bazlı
+yönlendirme, giriş/şifremi-unuttum ekranları, üç panel stub'ı (admin/rehberlik/
+öğretmen), tam DB şeması + RLS migration'ı hazır
+([supabase/migrations/0001_init.sql](../supabase/migrations/0001_init.sql)).
+Gerçek Supabase/Vercel hesabı **kullanıcı tarafından** açılmalı, adımlar:
+[guides/supabase-vercel-kurulum.md](guides/supabase-vercel-kurulum.md). Sıradaki
+kod işi: rol panellerinin gerçek içerikle doldurulması (flows/*.md'ye göre).
 
 ## Doküman ailesi
 

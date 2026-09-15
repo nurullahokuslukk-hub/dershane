@@ -1,7 +1,7 @@
 ---
 title: "Akış: Web — Rehberlik"
 description: Rehberlik rolünün web panelindeki tüm ekranları ve akışı — ürünün en kritik paneli.
-status: in-progress
+status: done
 updated_at: 2026-09-15
 ---
 

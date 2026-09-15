@@ -1,7 +1,7 @@
 ---
 title: Veri modeli
 description: Veritabanında tutulacak tüm veri kategorileri ve alanları.
-status: in-progress
+status: done
 updated_at: 2026-09-15
 ---
 
@@ -48,10 +48,12 @@ PDF §13 tenant configuration/feature flag için).
 `id`, `tenant_id`, `branch_id`, `name` (örn. "12-A"), `academic_year`.
 
 ### `user_account`
-`id`, `tenant_id` (**nullable, yalnızca `role = system_admin` için** — system admin
+`id` (= `auth.users.id`, Supabase Auth — **şifre burada değil, Supabase Auth
+tarafından yönetilir**, bkz. [decisions/0002-teknik-mimari.md](decisions/0002-teknik-mimari.md)),
+`tenant_id` (**nullable, yalnızca `role = system_admin` için** — system admin
 tenant'lar üstü çalışır; diğer tüm roller için `NOT NULL` CHECK constraint'i ile
 zorunlu), `role` (system_admin/dershane_admin/rehberlik/ogretmen/ogrenci),
-`auth_identifier`, `identifier_type` (email/phone), `password_hash`, `full_name`,
+`auth_identifier`, `identifier_type` (email/phone), `full_name`,
 `status` (pending/active/suspended). Auth kararı:
 [decisions/0001-auth-yontemi.md](decisions/0001-auth-yontemi.md).
 

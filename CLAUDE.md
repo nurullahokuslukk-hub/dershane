@@ -82,6 +82,13 @@ kalındı ama henüz kurulmadı, kullanıcı "daha sonra" dedi. Detay:
 karar". Bu konu tekrar gündeme geldiğinde burada somut bir protokol maddesi
 haline getirilecek.
 
+## Teknik yığın
+
+Next.js (App Router, TypeScript) tek uygulama — web paneli + API Route
+Handler'ları · Supabase (managed PostgreSQL + Auth, EU/Frankfurt) · Vercel
+hosting (EU/Frankfurt). Ayrı bir backend servisi yok. Detay ve gerekçe:
+[decisions/0002-teknik-mimari.md](docs/decisions/0002-teknik-mimari.md).
+
 ## Kaynak doküman
 
 Ürünün tek yetkili tanımı: [docs/source/urun-tanimi-v1.0.pdf](docs/source/urun-tanimi-v1.0.pdf).

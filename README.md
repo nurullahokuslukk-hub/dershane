@@ -16,3 +16,15 @@ destek sistemi. "Gözetim değil rehberlik."
 Bu repoda çalışan her Claude Code oturumu [CLAUDE.md](CLAUDE.md)'deki protokolü
 izler: önce `docs/index.md` + `STATE.md` okunur, oturum sonunda `STATE.md`'ye
 girdi eklenir.
+
+## Geliştirme
+
+```bash
+npm install
+npm run dev
+```
+
+`http://localhost:3000` — Supabase bağlantısı için önce
+[docs/guides/supabase-vercel-kurulum.md](docs/guides/supabase-vercel-kurulum.md)
+adımlarını tamamla (`.env.local` doldurulmadan giriş ekranı görünür ama gerçek
+giriş çalışmaz).

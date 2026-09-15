@@ -1,7 +1,7 @@
 ---
 title: "Akış: Web — Ortak Ekranlar"
 description: Tüm web rolleri (dershane admin, rehberlik, öğretmen) için ortak giriş ve layout ekranları.
-status: in-progress
+status: done
 updated_at: 2026-09-15
 ---
 

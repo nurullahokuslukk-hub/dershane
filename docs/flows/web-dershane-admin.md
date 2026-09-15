@@ -1,7 +1,7 @@
 ---
 title: "Akış: Web — Dershane Admin"
 description: Dershane Admin rolünün web panelindeki tüm ekranları ve akışı.
-status: in-progress
+status: done
 updated_at: 2026-09-15
 ---
 

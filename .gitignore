@@ -1,19 +1,49 @@
 ---
 title: Git ignore politikası
-description: Kaynak depoya girmemesi gereken yerel ve hassas dosyalar.
+description: Kaynak depoya girmemesi gereken yerel, üretilen ve hassas dosyalar.
 status: active
 updated_at: 2026-09-15
 ---
 
+# dependencies
 node_modules/
+.pnp
+.pnp.*
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# production
+build/
+dist/
+
+# testing / coverage
+coverage/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files — .env.example hariç, gerçek değerler asla commit edilmez
 .env
 .env.*
 !.env.example
-dist/
-build/
-.next/
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+
+# mobil (Faz 2)
 .dart_tool/
-coverage/
 *.keystore
 *.jks
-.DS_Store
