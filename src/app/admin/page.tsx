@@ -22,8 +22,11 @@ export default async function AdminDashboardPage() {
     redirect("/");
   }
 
+  const roleLabel =
+    account.role === "system_admin" ? "Sistem Admin" : "Dershane Admin";
+
   return (
-    <AppShell fullName={account.full_name} roleLabel="Dershane Admin">
+    <AppShell fullName={account.full_name} roleLabel={roleLabel}>
       <h1 className="text-lg font-semibold">Dashboard</h1>
       <p className="mt-2 text-sm text-black/60 dark:text-white/60">
         Şube/sınıf/öğrenci özetleri ve bekleyen onaylar burada listelenecek.
