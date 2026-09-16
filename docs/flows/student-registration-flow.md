@@ -1,8 +1,8 @@
 ---
 title: "Akış: Toplu Roster Kaydı & Hesap Doğrulama"
 description: Sistem admin'in dershane PDF'lerinden toplu öğrenci/öğretmen girmesinden, kişinin kendi hesabını claim etmesine kadar uçtan uca akış.
-status: in-progress
-updated_at: 2026-09-16
+status: done
+updated_at: 2026-09-17
 ---
 
 # Akış: Toplu Roster Kaydı & Hesap Doğrulama
@@ -21,9 +21,11 @@ kendi bilgileriyle doğrular.
    *(Sistem admin veya Dershane Admin → [web-dershane-admin.md](web-dershane-admin.md)
    "Şube Ekle/Düzenle" → "Sınıf Ekle/Düzenle")*
 3. **Roster toplu içe aktarılır.**
-   *(Sistem admin veya Dershane Admin → "Toplu İçe Aktar" ekranı, **henüz
-   yazılmadı** — bkz. "Sırada" bölümü. PDF'teki ad/soyad/sınıf/rol/öğretmen-
-   sınıf ataması bir CSV/Excel şablonuna aktarılıp yüklenir.)* Her satır için:
+   *(Sistem admin veya Dershane Admin → [`/admin/import/roster`](../../src/app/admin/import/roster/page.tsx).
+   PDF'teki ad/soyad/sınıf/rol/öğretmen-sınıf ataması bir CSV şablonuna
+   (`public/templates/roster-*.csv`) aktarılıp yüklenir — sadece CSV, bkz.
+   [decisions/0004-csv-only-import.md](../decisions/0004-csv-only-import.md).)*
+   Her satır için:
    - `user_account` oluşturulur, `status: unclaimed`, `auth_user_id: null`
      (henüz giriş bilgisi yok)
    - Öğrenciyse `student_profile` oluşturulur
@@ -58,8 +60,10 @@ kendi bilgileriyle doğrular.
   tekilleştirme kuralı yok (örn. isim+sınıf bazlı) — toplu içe aktarma
   ekranı tasarlanırken çözülecek açık nokta.
 
-## Sırada
+## Durum
 
-Bu belge claim akışının kendisini (kod → hesap) kapsıyor; **roster toplu içe
-aktarma ekranının kendisi (CSV/Excel yükleme, önizleme, hata gösterimi) henüz
-tasarlanmadı/yazılmadı.** Bir sonraki adım budur.
+Bu akışın tamamı (roster içe aktarma + claim) yazıldı ve uçtan uca test
+edildi (bkz. STATE.md 2026-09-16/17). Kalan açık nokta: aynı roster verisinin
+yanlışlıkla iki kez içe aktarılmasına karşı tekilleştirme kuralı yok (yukarıda
+"Uç durumlar" listesinde işaretli) — düşük öncelikli, gerçek kullanımda sorun
+çıkarsa ele alınacak.

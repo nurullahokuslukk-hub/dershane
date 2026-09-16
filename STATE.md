@@ -40,6 +40,44 @@ detaylandırılıp Codex'e verilecek bir brief hazırlanacak.
 **Sırada:** Kullanıcının cevabına göre ya Faz C (deneme sonucu içe aktarma)
 ya da Faz 2 (Android/Codex brief) hazırlığı.
 
+## 2026-09-17 — Faz 2 (Android) Codex için hazırlandı; Faz 0'daki Android akış belgesi güncel modele düzeltildi
+
+Kullanıcı native Android/Kotlin'e karar verdi (Flutter değil) —
+[decisions/0005-android-native-kotlin.md](docs/decisions/0005-android-native-kotlin.md).
+Ayrıca "gelişmiş admin paneli" isteğinin iki parçası netleşti: (1) görsel
+tasarım şu an çok sade — Claude/web tarafında ayrıca ele alınacak, Codex'in
+işi değil; (2) daha fazla veri görünürlüğü zaten Faz C/D'nin kapsamında, yeni
+bir şey değil.
+
+**Kritik düzeltme:** [flows/android-student.md](docs/flows/android-student.md)'nin
+onboarding bölümü (Davet Kodu Girişi/Profil Tamamlama/Onay Bekleniyor) Faz
+0'da, eski davet-kodu-self-servis modeli için yazılmıştı — decision 0003 ile
+kayıt modeli tamamen değişti (roster toplu içe aktarma + web'de `/claim`).
+Bu üç ekran kaldırıldı; Android artık sadece düz bir Giriş ekranı içeriyor,
+hesap doğrulama (claim) tamamen web'de kalıyor, Android'de karşılığı yok.
+Bu düzeltme yapılmadan Codex'e brief verilseydi, artık var olmayan bir akış
+için ekran inşa ederdi. `student-registration-flow.md` da güncellendi (roster
+içe aktarma artık `status: done`, önceki "henüz yazılmadı" notu kaldırıldı).
+
+[phases/phase-2-android.md](docs/phases/phase-2-android.md) Codex'in kendi
+başına başlayabileceği kadar detaylandırıldı: mimari karar (ayrı backend yok,
+doğrudan aynı Supabase projesine `supabase-kt` ile bağlanma — RLS zaten tenant
+izolasyonunu web ile aynı şekilde uyguluyor), telefon kullanım verisi detayı
+(`UsageStatsManager`, Usage Access izni, `WorkManager` periyodik senkron),
+offline kuyruk (Room + `client_record_id` idempotency, mekanizma zaten
+data-model.md'de tanımlıydı), 5 alt-adımlık öneri sırası (iskelet+auth → temel
+ekranlar → offline kuyruk → telefon verisi → Play Store hazırlığı), ve
+git çalışma notu (ayrı `android/` dizini, dosya çakışması yok, sadece
+STATE.md'ye ekleme yaparken `git pull --rebase` önerisi).
+
+`.gitignore`'daki eski Flutter kalıntısı (`.dart_tool/`) native Android/Gradle
+girdileriyle (`android/local.properties`, `android/.gradle/`, vs.)
+değiştirildi.
+
+**Sırada:** Kullanıcıya Codex'e verilecek kısa bir prompt metni hazırlanacak
+(bu mesajın sonunda). Web tarafında Faz C (deneme sonucu içe aktarma) devam
+edecek — Android işi Codex'e geçtiği için artık gerçekten paralel ilerlenebilir.
+
 ---
 
 ## 2026-09-16 — Faz B: Roster toplu içe aktarma tamamlandı

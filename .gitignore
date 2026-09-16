@@ -2,7 +2,7 @@
 title: Git ignore politikası
 description: Kaynak depoya girmemesi gereken yerel, üretilen ve hassas dosyalar.
 status: active
-updated_at: 2026-09-15
+updated_at: 2026-09-17
 ---
 
 # dependencies
@@ -43,7 +43,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 
-# mobil (Faz 2)
-.dart_tool/
+# mobil (Faz 2 — native Android/Kotlin, bkz. decisions/0005)
+android/local.properties
+android/.gradle/
+android/*/build/
+android/.idea/
 *.keystore
 *.jks

@@ -19,10 +19,17 @@ kullanıcı tarafından onaylandı (2026-09-15), `status: done`.
 Toplu kayıt/claim modeli: [decisions/0003-toplu-kayit-ve-claim-akisi.md](decisions/0003-toplu-kayit-ve-claim-akisi.md).
 
 **Kod durumu:** Auth (Supabase, claim akışı), rol bazlı yönlendirme, audit log,
-Sentry hepsi çalışıyor. **Faz A (yönetim CRUD) ve Faz B (roster toplu içe
-aktarma) tamamlandı** — uçtan uca doğrulandı (bkz. STATE.md). Sadece CSV
-destekleniyor, Excel değil (bkz. [decisions/0004-csv-only-import.md](decisions/0004-csv-only-import.md)).
-Sırada: Faz C (deneme sonucu toplu içe aktarma) → Faz D (rehberlik ekranında
+Sentry, sistem admin için genel arama hepsi çalışıyor. **Faz A (yönetim CRUD)
+ve Faz B (roster toplu içe aktarma) tamamlandı** — uçtan uca doğrulandı (bkz.
+STATE.md). Sadece CSV destekleniyor, Excel değil (bkz.
+[decisions/0004-csv-only-import.md](decisions/0004-csv-only-import.md)).
+
+**Faz 2 (Android) paralel olarak başladı — Codex geliştiriyor.** Native
+Android/Kotlin ([decisions/0005-android-native-kotlin.md](decisions/0005-android-native-kotlin.md)),
+detaylı brief: [phases/phase-2-android.md](phases/phase-2-android.md). Ayrı bir
+backend yazılmıyor — aynı Supabase projesine doğrudan bağlanıyor.
+
+Web tarafında sırada: Faz C (deneme sonucu toplu içe aktarma) → Faz D (rehberlik ekranında
 gösterme).
 Detaylı plan ve gerekçe: STATE.md 2026-09-16 girdisi. Kurulum:
 [guides/supabase-vercel-kurulum.md](guides/supabase-vercel-kurulum.md).

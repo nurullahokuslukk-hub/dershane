@@ -15,15 +15,14 @@ Kayıt akışının admin onayı ile kesişen kısmı ayrı belgede:
 "Öğrenci doğru dershane/sınıfa bağlanır" adımından sonrasını, yani öğrencinin
 uygulamayı **gündelik kullanımını** kapsar.
 
-> **Onboarding bölümü güncel değil.** [decisions/0003-toplu-kayit-ve-claim-akisi.md](../decisions/0003-toplu-kayit-ve-claim-akisi.md)
-> ile kayıt modeli değişti: öğrenci artık kendi başına "davet kodu ile kayıt
-> olup admin onayı bekleme" akışını izlemiyor — roster sistem admin/dershane
-> admin tarafından toplu yükleniyor, öğrenci sadece kendine verilen kodu
-> girip hesabını doğruluyor (web'deki `/claim` ekranının Android karşılığı).
-> Aşağıdaki "Davet Kodu Girişi / Profil Tamamlama / Onay Bekleniyor" ekranları
-> bu yüzden **eski model**; Faz 2 (Android inşası) başladığında yeniden
-> yazılacak. Ana kullanım bölümü (günlük bildirim, çalışma kaydı vb.)
-> etkilenmedi, geçerliliğini koruyor.
+> **Onboarding bölümü güncellendi (2026-09-17).** [decisions/0003-toplu-kayit-ve-claim-akisi.md](../decisions/0003-toplu-kayit-ve-claim-akisi.md)
+> ile kayıt modeli değişti: roster sistem admin/dershane admin tarafından
+> toplu yükleniyor, öğrenci kendine verilen kodu **web'deki `/claim`
+> sayfasında** (herhangi bir tarayıcıda, uygulama kurulu olmadan) kullanıp
+> hesabını doğruluyor — bunun için Android'de ayrı bir ekran/akış **yok**.
+> Uygulama sadece zaten doğrulanmış (claim edilmiş) bir hesapla girişi
+> destekler. Eskiden burada olan "Davet Kodu Girişi / Profil Tamamlama / Onay
+> Bekleniyor" ekranları bu yüzden kaldırıldı.
 
 ## Onboarding
 
@@ -35,73 +34,32 @@ uygulamayı **gündelik kullanımını** kapsar.
 **Aksiyonlar:**
 - Geçerli token var → **Ana Sayfa**'ya yönlendir
 - Token yok / süresi dolmuş → **Giriş**'e yönlendir
-- Öğrenci kayıtlı ama admin onayı bekliyor (durum sunucudan gelir) → **Onay Bekleniyor**'a yönlendir
 
 ### Ekran: Giriş
 
-**Amaç:** Kayıtlı öğrencinin uygulamaya giriş yapması. Yöntem:
-[decisions/0001-auth-yontemi.md](../decisions/0001-auth-yontemi.md) — e-posta **veya**
-telefon numarası + şifre.
+**Amaç:** Doğrulanmış (claim edilmiş) bir öğrencinin uygulamaya giriş yapması.
+Yöntem: [decisions/0001-auth-yontemi.md](../decisions/0001-auth-yontemi.md) —
+e-posta **veya** telefon numarası + şifre. Web ile aynı Supabase Auth
+altyapısı kullanılır, ayrı bir Android login sistemi yok.
 **Erişim:** Herkes.
 
 **Gösterilen veri / girilecek alanlar:**
-- Kimlik alanı (e-posta veya telefon — tek bir alan, `identifier_type` sunucu
-  tarafında otomatik algılanır)
+- Kimlik alanı (e-posta veya telefon)
 - Şifre
+- Küçük bir bilgi notu: "Hesabın yok mu? Dershanenden aldığın kodu
+  [site]/claim adresinde kullanarak önce hesabını doğrula." (uygulama içinde
+  bir ekran değil, sadece yönlendirici metin — claim işlemi tarayıcıda olur)
 
 **Aksiyonlar:**
 - Giriş yap → **Ana Sayfa**
 - "Şifremi unuttum" → e-posta ile sıfırlama linki (telefon-only kullanıcı ise
-  dershane admin'den şifre sıfırlama istenir)
-- "Davet kodum var, hesabım yok" → **Davet Kodu Girişi**
+  dershane admin'den şifre sıfırlama istenir, bkz.
+  [web-dershane-admin.md](web-dershane-admin.md) → Öğrenci Detayı)
 
 **Hata/uç durumlar:**
-- Hatalı giriş → hata mesajı, deneme sayısı sınırlandırılır (rate limiting, bkz.
-  [CLAUDE.md](../../CLAUDE.md))
-
-### Ekran: Davet Kodu Girişi
-
-**Amaç:** Dershane admin'den alınan davet kodu/linki ile kayıt başlatma.
-**Erişim:** Hesabı olmayan yeni kullanıcı.
-
-**Gösterilen veri:**
-- davet kodu (deep link ile geldiyse otomatik dolu)
-
-**Aksiyonlar:**
-- Kod geçerli → **Profil Tamamlama**
-- Kod geçersiz/süresi dolmuş → hata, admin ile iletişime geçme yönlendirmesi
-
-Detay: [student-registration-flow.md](student-registration-flow.md) adım 4-5.
-
-### Ekran: Profil Tamamlama
-
-**Amaç:** Öğrencinin temel bilgilerini girmesi.
-**Erişim:** Davet koduyla gelen yeni kullanıcı.
-
-**Gösterilen veri (doldurulacak alanlar):**
-- ad, soyad
-- doğum tarihi (veli onayı akışı için gerekebilir — bkz. açık soru)
-- sınıf/şube (davetten otomatik gelebilir veya seçim gerekebilir)
-- iletişim bilgisi (auth yöntemine bağlı)
-
-**Aksiyonlar:**
-- Kaydet → **Onay Bekleniyor**
-
-### Ekran: Onay Bekleniyor
-
-**Amaç:** Dershane admin onayı beklenirken bilgilendirme; uygulamanın diğer
-kısımlarına erişimi engeller.
-**Erişim:** Onay bekleyen öğrenci.
-
-**Gösterilen veri:**
-- Durum mesajı ("Kaydınız dershane yönetimi tarafından inceleniyor")
-
-**Aksiyonlar:**
-- Yenile (pull-to-refresh) → onay durumu kontrol edilir, onaylandıysa **Ana Sayfa**'ya geçer
-
-**Hata/uç durumlar:**
-- Admin reddederse → red nedeni gösterilir (varsa), yeniden davet kodu isteme
-  yönlendirmesi
+- Hatalı giriş → hata mesajı, Supabase Auth'un kendi rate limiting'i geçerli
+- Hesabı henüz claim edilmemiş biri email/şifre bilmediği için zaten giriş
+  deneyemez — bu durum burada ayrıca ele alınmaz
 
 ## Ana kullanım
 
