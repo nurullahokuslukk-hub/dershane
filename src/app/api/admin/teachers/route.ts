@@ -3,6 +3,7 @@ import { getViewer, checkRoleApi } from "@/lib/auth/viewer";
 import { resolveWriteTenantId } from "@/lib/tenant-context";
 import { generateClaimCode } from "@/lib/roster/claim-code";
 import { createClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(request: Request) {
   const check = checkRoleApi(await getViewer(), [
@@ -89,6 +90,15 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+
+  await logAudit({
+    tenantId: resolved.tenantId,
+    actorAccountId: check.viewer.account.id,
+    action: "teacher.create",
+    targetTable: "user_account",
+    targetId: account.id,
+    metadata: { fullName, classIds },
+  });
 
   return NextResponse.json({ ok: true, id: account.id });
 }

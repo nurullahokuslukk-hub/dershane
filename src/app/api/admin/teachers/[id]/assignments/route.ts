@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getViewer, checkRoleApi } from "@/lib/auth/viewer";
 import { resolveWriteTenantId } from "@/lib/tenant-context";
 import { createClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 // Öğretmenin ad soyad + sınıf atamalarını tamamen yeni sete göre günceller
 // (ekle/çıkar yerine tek seferde "olması gereken hal" gönderilir).
@@ -83,6 +84,15 @@ export async function POST(
       );
     }
   }
+
+  await logAudit({
+    tenantId: resolved.tenantId,
+    actorAccountId: check.viewer.account.id,
+    action: "teacher.update",
+    targetTable: "user_account",
+    targetId: id,
+    metadata: { fullName, classIds },
+  });
 
   return NextResponse.json({ ok: true });
 }

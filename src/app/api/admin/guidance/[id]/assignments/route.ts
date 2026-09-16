@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getViewer, checkRoleApi } from "@/lib/auth/viewer";
 import { resolveWriteTenantId } from "@/lib/tenant-context";
 import { createClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(
   request: Request,
@@ -87,6 +88,15 @@ export async function POST(
       );
     }
   }
+
+  await logAudit({
+    tenantId: resolved.tenantId,
+    actorAccountId: check.viewer.account.id,
+    action: "guidance.update",
+    targetTable: "user_account",
+    targetId: id,
+    metadata: { fullName, studentIds },
+  });
 
   return NextResponse.json({ ok: true });
 }

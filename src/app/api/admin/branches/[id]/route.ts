@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getViewer, checkRoleApi } from "@/lib/auth/viewer";
 import { resolveWriteTenantId } from "@/lib/tenant-context";
 import { createClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 export async function PATCH(
   request: Request,
@@ -33,10 +34,24 @@ export async function PATCH(
 
   if (error) {
     return NextResponse.json(
-      { error: "Şube güncellenemedi." },
+      {
+        error:
+          error.code === "23505"
+            ? "Bu isimde bir şube zaten var."
+            : "Şube güncellenemedi.",
+      },
       { status: 400 },
     );
   }
+
+  await logAudit({
+    tenantId: resolved.tenantId,
+    actorAccountId: check.viewer.account.id,
+    action: "branch.update",
+    targetTable: "branch",
+    targetId: id,
+    metadata: { name, address },
+  });
 
   return NextResponse.json({ ok: true });
 }

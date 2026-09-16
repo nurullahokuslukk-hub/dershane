@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getViewer, checkRoleApi } from "@/lib/auth/viewer";
 import { resolveWriteTenantId } from "@/lib/tenant-context";
 import { createClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 export async function PATCH(
   request: Request,
@@ -47,10 +48,24 @@ export async function PATCH(
 
   if (error) {
     return NextResponse.json(
-      { error: "Sınıf güncellenemedi." },
+      {
+        error:
+          error.code === "23505"
+            ? "Bu şubede bu isimde bir sınıf zaten var."
+            : "Sınıf güncellenemedi.",
+      },
       { status: 400 },
     );
   }
+
+  await logAudit({
+    tenantId: resolved.tenantId,
+    actorAccountId: check.viewer.account.id,
+    action: "class_group.update",
+    targetTable: "class_group",
+    targetId: id,
+    metadata: { name, branchId, academicYear },
+  });
 
   return NextResponse.json({ ok: true });
 }

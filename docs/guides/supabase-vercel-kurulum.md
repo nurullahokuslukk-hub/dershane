@@ -1,8 +1,8 @@
 ---
-title: Supabase ve Vercel hesap kurulumu
-description: Kod tarafı hazır — bu iki hesabı sadece sen açabilirsin, adım adım rehber.
+title: Supabase, Vercel ve Sentry hesap kurulumu
+description: Kod tarafı hazır — bu hesapları sadece sen açabilirsin, adım adım rehber.
 status: active
-updated_at: 2026-09-15
+updated_at: 2026-09-16
 ---
 
 # Supabase ve Vercel Kurulumu
@@ -27,10 +27,14 @@ anlatıyorum. Toplam ~10 dakika sürer.
 ## 2. Veritabanı şemasını kur
 
 1. Supabase panelinde **SQL Editor**'ü aç.
-2. [`supabase/migrations/0001_init.sql`](../../supabase/migrations/0001_init.sql)
-   dosyasının tüm içeriğini kopyala, SQL Editor'e yapıştır, çalıştır (Run).
+2. `supabase/migrations/` klasöründeki dosyaları **numara sırasıyla** (0001,
+   0002, 0003, 0004...) tek tek kopyala-yapıştır-çalıştır. Her biri bir
+   öncekinin üzerine ekleme yapıyor, sırayı atlama.
 3. Hata almadan bittiyse, **Table Editor**'de `tenant`, `user_account` gibi
    tabloları görmen lazım — şema kuruldu demektir.
+
+Yeni bir migration dosyası eklendiğinde (dosya adında en yüksek numarayı
+görürsün) sadece o dosyayı çalıştırman yeterli — öncekiler zaten uygulanmış.
 
 ## 3. Yerel geliştirme için `.env.local` doldur
 
@@ -57,11 +61,43 @@ Sonra `npm run dev` ile uygulamayı çalıştır — artık gerçek Supabase'e b
 5. Environment Variables kısmına adım 1'deki üç değeri aynen ekle.
 6. Deploy.
 
+## 5. Sentry (hata izleme) kurulumu — opsiyonel
+
+Kod tarafı hazır (`instrumentation.ts`, `instrumentation-client.ts`,
+`next.config.ts`); DSN girmezsen uygulama normal çalışır, sadece hatalar
+hiçbir yere bildirilmez. Gerçek kullanıcılar sisteme girmeden önce kurman
+önerilir — bir şey patladığında sen fark etmeden önce sistem sana haber versin.
+
+1. [sentry.io](https://sentry.io) → ücretsiz hesap aç.
+2. "Create Project" → platform: **Next.js** → proje adı: `dersahne`.
+3. Kurulum ekranında sana bir **DSN** (uzun bir URL) verecek, kopyala.
+4. Sentry'de sol menüden **Settings → Organization Settings**'e git,
+   üstteki "Organization slug"ı not al (bu `SENTRY_ORG`). Proje sayfasında
+   da proje slug'ını not al (bu `SENTRY_PROJECT`).
+5. `.env.local`'e ekle:
+
+```bash
+NEXT_PUBLIC_SENTRY_DSN="https://xxxxx@xxxxx.ingest.sentry.io/xxxxx"
+SENTRY_ORG="xxxxx"
+SENTRY_PROJECT="dersahne"
+```
+
+6. Vercel'e deploy ettiğinde aynı üç değeri Vercel'in Environment Variables
+   kısmına da ekle (adım 4).
+
 ## İlk kullanıcıyı oluşturma (system admin)
 
-Şu an kayıt akışı davet koduyla başlıyor (bkz.
-[flows/student-registration-flow.md](../flows/student-registration-flow.md)),
-ama sistemdeki **ilk** kullanıcı (system admin) davet koduyla giremez —
-birinin onu elle oluşturması gerekir. Adım 1-3 tamamlanınca bunu nasıl
-yapacağımızı (Supabase Auth panelinden veya bir script ile) birlikte
-kararlaştırırız — bu, Faz 1'in ilerleyen bir adımı.
+Normal kayıt akışında herkes (öğrenci/öğretmen/rehberlik/dershane admin) roster
+toplu içe aktarma + kendi hesabını doğrulama (claim code) yoluyla sisteme
+giriyor (bkz.
+[decisions/0003-toplu-kayit-ve-claim-akisi.md](../decisions/0003-toplu-kayit-ve-claim-akisi.md)).
+Ama sistemdeki **ilk** kullanıcı (system admin) hiçbir dershaneye bağlı
+olmadığı için bu akışa giremez — elle/script ile oluşturulması gerekir:
+
+```bash
+node --env-file=.env.local scripts/create-system-admin.mjs "sen@e-posta.com" "GüçlüBirŞifre.123" "Adın Soyadın"
+```
+
+Bu, sana `system_admin` rolüyle giriş yapabileceğin bir hesap açar — buradan
+sonra dershane oluşturma, şube/sınıf/öğretmen/rehberlik ekleme hepsi web
+panelinden yapılır.

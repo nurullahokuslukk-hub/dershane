@@ -12,6 +12,46 @@ En yeni girdi en üstte. Format için [AGENTS.md](AGENTS.md) → "STATE.md giri�
 
 ---
 
+## 2026-09-16 — Ölçek/karışıklık sağlamlaştırması: tekillik kısıtları + audit log + Sentry
+
+Kullanıcı Faz B'ye acele etmeden önce, tamamlanan Faz A'ya "yüz binlerce
+kullanıcı" ölçeğinde çöküş/karışıklık olmaması için ne eklenebileceğini sordu.
+Önerilen ve onaylanan 3 madde uygulandı (mimari değişikliği gerekmiyordu —
+Next.js+Supabase+Vercel yığını bu ölçek için yeterli, asıl risk "herkesin aynı
+anda sonuç sayfasına hücum etmesi" — bu, Faz C/D tasarımına cache stratejisi
+olarak not edildi, henüz kod yok):
+
+1. **`supabase/migrations/0004_integrity_and_audit.sql`**: `branch(tenant_id,
+   name)` ve `class_group(branch_id, name)` üzerinde unique constraint — çift
+   gönderim/ağ tekrarıyla mükerrer şube/sınıf oluşmasını DB seviyesinde
+   imkansız kılar. Ayrıca `audit_log` tablosu (tenant izolasyonlu RLS).
+2. **`src/lib/audit.ts`** (`logAudit`, best-effort — hata olursa asıl işlemi
+   engellemez) tüm admin mutasyon route'larına (tenant/branch/class/teacher/
+   guidance create+update, claim code renew) eklendi.
+3. **`src/app/admin/audit-log/page.tsx`**: son 100 işlem kaydını gösteren
+   basit bir ekran, nav'a eklendi.
+4. **Sentry** (`@sentry/nextjs`) kuruldu: `instrumentation.ts`,
+   `instrumentation-client.ts`, `next.config.ts` sarmalandı,
+   `src/app/global-error.tsx` eklendi. DSN boşken sessizce no-op — hesap
+   açılmadan uygulama bozulmaz. Kurulum adımları
+   [guides/supabase-vercel-kurulum.md](docs/guides/supabase-vercel-kurulum.md)'ye
+   eklendi (Sentry hesabı da kullanıcı tarafından açılmalı, ben açamam).
+
+Migration 0003 + 0004 kullanıcı tarafından henüz SQL Editor'de çalıştırılmadı.
+Tarayıcıda test edildi: audit_log tablosu yokken bile branch oluşturma
+sorunsuz çalıştı (best-effort tasarım doğrulandı), test verisi temizlendi.
+`npm run build` temiz.
+
+**Not:** Kullanıcı "kodu çalıştırdım ama tasarımdan memnun değilim, Codex ile
+değiştireceğim" dedi — kendi test tenant'ı ("başarı") oluşturdu, dokunulmadı.
+Görsel tasarım (Tailwind, sistemsiz) bilinçli bir MVP kararıydı, iş mantığı
+(API/DB) arayüzden ayrık olduğu için Codex ile sadece görünüm değişikliği
+riski düşük.
+
+**Sırada:** Kullanıcı onay verirse Faz B (roster toplu içe aktarma).
+
+---
+
 ## 2026-09-16 — Plan modu: kapsamlı yol haritası + Faz A (yönetim CRUD) tamamlandı ve doğrulandı
 
 Kullanıcı plan moduna geçti, deneme sonuçları yükleme/gösterme + "diğer her şeyi

@@ -24,6 +24,7 @@ export default async function AdminLayout({
     { label: "Öğretmenler", href: "/admin/teachers" },
     { label: "Rehberlik", href: "/admin/guidance" },
     { label: "Doğrulanmamış Hesaplar", href: "/admin/unclaimed" },
+    { label: "İşlem Kayıtları", href: "/admin/audit-log" },
     { label: "Roster İçe Aktar", href: "/admin/import/roster" },
     { label: "Deneme Sonucu İçe Aktar", href: "/admin/import/exam-results" },
   ];

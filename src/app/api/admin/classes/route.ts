@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getViewer, checkRoleApi } from "@/lib/auth/viewer";
 import { resolveWriteTenantId } from "@/lib/tenant-context";
 import { createClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(request: Request) {
   const check = checkRoleApi(await getViewer(), [
@@ -36,19 +37,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Geçersiz şube." }, { status: 400 });
   }
 
-  const { error } = await supabase.from("class_group").insert({
-    tenant_id: resolved.tenantId,
-    branch_id: branchId,
-    name,
-    academic_year: academicYear,
-  });
+  const { data: classGroup, error } = await supabase
+    .from("class_group")
+    .insert({
+      tenant_id: resolved.tenantId,
+      branch_id: branchId,
+      name,
+      academic_year: academicYear,
+    })
+    .select("id")
+    .single();
 
-  if (error) {
+  if (error || !classGroup) {
     return NextResponse.json(
-      { error: "Sınıf oluşturulamadı." },
+      {
+        error:
+          error?.code === "23505"
+            ? "Bu şubede bu isimde bir sınıf zaten var."
+            : "Sınıf oluşturulamadı.",
+      },
       { status: 400 },
     );
   }
+
+  await logAudit({
+    tenantId: resolved.tenantId,
+    actorAccountId: check.viewer.account.id,
+    action: "class_group.create",
+    targetTable: "class_group",
+    targetId: classGroup.id,
+    metadata: { name, branchId, academicYear },
+  });
 
   return NextResponse.json({ ok: true });
 }
