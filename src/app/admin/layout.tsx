@@ -18,7 +18,12 @@ export default async function AdminLayout({
 
   const nav = [
     { label: "Dashboard", href: "/admin" },
-    ...(isSystemAdmin ? [{ label: "Dershaneler", href: "/admin/tenants" }] : []),
+    ...(isSystemAdmin
+      ? [
+          { label: "Genel Arama", href: "/admin/search" },
+          { label: "Dershaneler", href: "/admin/tenants" },
+        ]
+      : []),
     { label: "Şubeler", href: "/admin/branches" },
     { label: "Sınıflar", href: "/admin/classes" },
     { label: "Öğretmenler", href: "/admin/teachers" },

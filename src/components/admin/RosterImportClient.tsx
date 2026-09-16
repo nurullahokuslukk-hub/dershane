@@ -137,11 +137,26 @@ export function RosterImportClient({
   return (
     <div className="max-w-3xl space-y-6">
       <h1 className="text-lg font-semibold">Roster Toplu İçe Aktar</h1>
-      <p className="text-sm text-black/60 dark:text-white/60">
-        Dershaneden gelen öğrenci/öğretmen listesini CSV şablonuna aktar, tek
-        seferde yükle. Hatalı satırlar diğerlerini engellemez — düzeltip
-        yeniden yükleyebilirsin.
-      </p>
+      <div className="space-y-1 rounded-md border border-black/10 p-4 text-sm dark:border-white/10">
+        <p className="font-medium">Nasıl çalışır:</p>
+        <p>
+          <strong>1) İndir</strong> — aşağıdaki şablon, hangi bilgiyi hangi
+          sütuna yazacağını gösteren <em>boş</em> bir örnek dosyadır (sistem
+          dershaneden gelen PDF'i kendisi okuyamıyor, format dershaneden
+          dershaneye değiştiği için güvenilir olmuyor).
+        </p>
+        <p>
+          <strong>2) Doldur</strong> — dershaneden gelen PDF'teki öğrenci/
+          öğretmen isimlerini, kendi bilgisayarında bu şablonun sütunlarına
+          yaz (Excel/Google Sheets ile açıp doldurabilir, CSV olarak kaydet).
+        </p>
+        <p>
+          <strong>3) Yükle</strong> — doldurduğun dosyayı aşağıdan seç.
+          Hatalı satırlar (örn. yazım hatası olan sınıf adı) diğerlerini
+          engellemez — geçerli olanlar aktarılır, hatalı olanı düzeltip
+          tekrar yükleyebilirsin.
+        </p>
+      </div>
 
       <div className="flex gap-2 text-sm">
         <button

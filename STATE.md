@@ -12,6 +12,36 @@ En yeni girdi en üstte. Format için [AGENTS.md](AGENTS.md) → "STATE.md giri�
 
 ---
 
+## 2026-09-17 — Roster içe aktarma sayfası netleştirildi, sistem admin için genel arama eklendi
+
+Kullanıcı roster içe aktarma sayfasındaki "şablon indir" adımının neden
+gerektiğini anlamadığını belirtti (sistem PDF'i kendisi okuyamıyor, şablon
+sadece format örneği — bu hiç açıklanmamıştı). `RosterImportClient.tsx`'e
+3 adımlı ("1) İndir 2) Doldur 3) Yükle") açık bir açıklama kutusu eklendi.
+
+Kullanıcı ayrıca admin panelinin "çok basit" kaldığını, örnek olarak "kayıtlı
+tüm dershaneleri, öğrenci isimlerini görebilmek, dershane arama" istediğini
+belirtti — bu somut isteğe karşılık **`/admin/search`** eklendi (sadece
+system_admin): tüm dershanelerde dershane adı VEYA kişi adı arama, sonuçta
+"Bu dershaneye geç" ile o dershanenin bağlamına atlama. RLS zaten
+`is_system_admin()` için tenant_id filtresini kaldırdığından bu sorgular ekstra
+bir yetki mekanizması gerektirmedi. Tarayıcıda test edildi: "açı" dershanesi
+arandı, bulundu, "Bu dershaneye geç" ile TenantSwitcher'ın context'i doğru
+değişti. `npm run build` temiz.
+
+Kullanıcı ayrıca genel olarak sistemin "yerlerde" ve "kusurlu" hissettiğini,
+diğer ekranların (özellikle Android/Flutter öğrenci uygulaması) ne zaman
+kurulacağını sordu ve bu kısmı Codex'e yaptıracağını, benden Codex için bir
+"prompt" hazırlamamı istedi (öğrenci telefon kullanım verisi kesinlikle
+alınmalı). Bu konuşulan ama henüz üzerinde çalışılmayan bir konu — devam eden
+sohbette Flutter/native karar netleştirilip Faz 2 (Android) dokümanı
+detaylandırılıp Codex'e verilecek bir brief hazırlanacak.
+
+**Sırada:** Kullanıcının cevabına göre ya Faz C (deneme sonucu içe aktarma)
+ya da Faz 2 (Android/Codex brief) hazırlığı.
+
+---
+
 ## 2026-09-16 — Faz B: Roster toplu içe aktarma tamamlandı
 
 Kullanıcı migration 0003+0004'ü çalıştırdı, Sentry hesabı açıp DSN/org/proje
