@@ -13,6 +13,7 @@ const ACTION_LABEL: Record<string, string> = {
   "guidance.create": "Rehberlik kullanıcısı eklendi",
   "guidance.update": "Rehberlik kullanıcısı güncellendi",
   "claim_code.renew": "Doğrulama kodu yenilendi",
+  "roster.import": "Roster toplu içe aktarıldı",
 };
 
 // Ekran: 2026-09-16 kullanıcıyla konuşulan "ölçek/karışıklık" iyileştirmesi —
@@ -75,6 +76,11 @@ export default async function AuditLogPage() {
             <span className="font-medium">
               {ACTION_LABEL[r.action] ?? r.action}
             </span>{" "}
+            {typeof r.metadata?.createdCount === "number" && (
+              <span className="text-black/50 dark:text-white/50">
+                ({r.metadata.createdCount} kayıt)
+              </span>
+            )}{" "}
             <span className="text-black/50 dark:text-white/50">
               · {r.actor?.full_name ?? "(silinmiş kullanıcı)"}
             </span>

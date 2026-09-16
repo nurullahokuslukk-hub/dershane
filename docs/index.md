@@ -18,10 +18,12 @@ kullanıcı tarafından onaylandı (2026-09-15), `status: done`.
 (`status: in-progress`). Teknik mimari: [decisions/0002-teknik-mimari.md](decisions/0002-teknik-mimari.md).
 Toplu kayıt/claim modeli: [decisions/0003-toplu-kayit-ve-claim-akisi.md](decisions/0003-toplu-kayit-ve-claim-akisi.md).
 
-**Kod durumu:** Auth (Supabase, claim akışı), rol bazlı yönlendirme çalışıyor.
-**Faz A (dershane/şube/sınıf/personel yönetimi) tamamlandı** — gerçek CRUD,
-tarayıcıda uçtan uca doğrulandı. Sırada: Faz B (roster toplu içe aktarma) →
-Faz C (deneme sonucu toplu içe aktarma) → Faz D (rehberlik ekranında gösterme).
+**Kod durumu:** Auth (Supabase, claim akışı), rol bazlı yönlendirme, audit log,
+Sentry hepsi çalışıyor. **Faz A (yönetim CRUD) ve Faz B (roster toplu içe
+aktarma) tamamlandı** — uçtan uca doğrulandı (bkz. STATE.md). Sadece CSV
+destekleniyor, Excel değil (bkz. [decisions/0004-csv-only-import.md](decisions/0004-csv-only-import.md)).
+Sırada: Faz C (deneme sonucu toplu içe aktarma) → Faz D (rehberlik ekranında
+gösterme).
 Detaylı plan ve gerekçe: STATE.md 2026-09-16 girdisi. Kurulum:
 [guides/supabase-vercel-kurulum.md](guides/supabase-vercel-kurulum.md).
 

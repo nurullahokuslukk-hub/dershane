@@ -12,6 +12,52 @@ En yeni girdi en üstte. Format için [AGENTS.md](AGENTS.md) → "STATE.md giri�
 
 ---
 
+## 2026-09-16 — Faz B: Roster toplu içe aktarma tamamlandı
+
+Kullanıcı migration 0003+0004'ü çalıştırdı, Sentry hesabı açıp DSN/org/proje
+bilgilerini verdi (`.env.local`'e eklendi). Sentry'nin olayı yakaladığı
+`__sentry_captured__` işaretiyle doğrulandı, ağ isteğini doğrudan
+göremedim — kullanıcıdan sentry.io panelinden teyit etmesini istedim.
+
+**Güvenlik kararı:** Plandaki `xlsx` (SheetJS) bağımlılığı **kullanılmadı** —
+npm'deki güncel sürümde (0.18.5, son npm sürümü) düzeltilmemiş yüksek önemli
+açıklar var (prototip kirlenmesi, ReDoS), SheetJS yamaları sadece kendi
+CDN'lerinden dağıtıyor. Bunun yerine **sadece CSV** desteği + `papaparse`
+(0 güvenlik açığı) kullanıldı — kapsam bilinçli olarak daraltıldı, Excel
+dosyaları "Farklı Kaydet → CSV" ile tek adımda dönüştürülebiliyor.
+
+**Kurulanlar:**
+- `src/lib/import/{types,validators,parse-csv,roster-schema}.ts` — CSV parse,
+  satır doğrulama, sınıf adı eşleştirme (sıfır eşleşme → hata, birden fazla
+  eşleşme → öğrenci satırlarında satır-içi seçim kutusu; öğretmen satırlarında
+  birden fazla sınıf olabildiği için basitleştirilip hata + şube adı ekleme
+  talebi olarak çözüldü).
+- `src/components/import/ImportPreviewTable.tsx` — genel önizleme tablosu.
+- `src/components/admin/RosterImportClient.tsx` + `src/app/admin/import/roster/page.tsx`
+  — mod seçimi (öğrenci/öğretmen), şablon indirme, yükle → önizle → onayla.
+- `src/app/api/admin/import/roster/route.ts` — sunucu tarafında sınıfların
+  tenant'a ait olduğunu yeniden doğrular, toplu insert (user_account →
+  student_profile/teacher_class_assignment → account_claim_code), ara adım
+  başarısız olursa user_account'ları geri alır (rollback).
+- `public/templates/roster-{ogrenci,ogretmen}-sablon.csv`.
+- `docs/admin/audit-log/page.tsx`'e "roster.import" etiketi ve kayıt sayısı
+  gösterimi eklendi.
+
+**Test:** Dosya seçme diyaloğu tarayıcı otomasyon aracıyla tetiklenemiyor
+(bilinen sınırlama) — client-side önizleme ekranı görsel olarak
+doğrulanamadı. Bunun yerine kritik kısım (sunucu route'u) gerçek oturumdan
+doğrudan `fetch` ile test edildi: geçerli 2 öğrenci + 1 öğretmen satırı
+başarıyla oluşturuldu (doğru `class_group_id`/`branch_id`/`birth_date` ile),
+geçersiz `classId` doğru şekilde reddedildi (hiçbir kayıt oluşmadı — kısmi
+oluşturma yok), oluşturulan öğrencinin claim kodu gerçek `/claim` akışından
+geçirildi ve doğru "öğrenci web panelini kullanamaz" mesajına ulaştı. Test
+verileri temizlendi. `npm run build` temiz.
+
+**Sırada:** Faz C (deneme sonucu toplu içe aktarma) → Faz D (rehberlik
+ekranında gösterme).
+
+---
+
 ## 2026-09-16 — Ölçek/karışıklık sağlamlaştırması: tekillik kısıtları + audit log + Sentry
 
 Kullanıcı Faz B'ye acele etmeden önce, tamamlanan Faz A'ya "yüz binlerce

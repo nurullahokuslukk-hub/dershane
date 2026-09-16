@@ -116,15 +116,18 @@ sınıf, rol, hangi öğretmen hangi sınıfa giriyor) tek seferde yüklemek —
 sistemin ana veri girişi yöntemi (tek tek "öğrenci ekle" formu yerine).
 **Erişim:** Dershane Admin, Sistem Admin.
 
-**Durum:** **Henüz tasarlanmadı/yazılmadı** — sıradaki iş. Beklenen akış:
-CSV/Excel şablonu indir → doldur → yükle → sistem satır satır önizleme +
-hata gösterir (örn. eksik sınıf) → onaylanırsa her satır için `user_account`
-(`unclaimed`) + `account_claim_code` oluşturulur.
+**Durum:** Yazıldı (2026-09-16) — `/admin/import/roster`. Sadece **CSV**
+(Excel değil — bkz. [decisions/0004-csv-only-import.md](../decisions/0004-csv-only-import.md)
+güvenlik gerekçesi). Akış: şablon indir → doldur → yükle → sistem satır satır
+önizleme + hata/belirsizlik gösterir (örn. eksik/belirsiz sınıf, öğrenci
+satırlarında satır-içi seçim kutusuyla çözülebilir) → onaylanırsa her satır
+için `user_account` (`unclaimed`) + `student_profile`/`teacher_class_assignment`
++ `account_claim_code` oluşturulur.
 
 **Aksiyonlar:**
-- Şablon indir
-- Dosya yükle → önizleme
-- Onayla → toplu oluşturma
+- Şablon indir (öğrenci/öğretmen ayrı şablon)
+- CSV yükle → önizleme (hatalı satırlar diğerlerini engellemez)
+- Onayla → toplu oluşturma → Doğrulanmamış Hesaplar ekranına link
 
 ## Ekran: Öğretmen Listesi
 
