@@ -51,6 +51,12 @@ Bu belge okunmadan kodlamaya başlanmamalı. Özet:
    flows/android-student.md → Onboarding notu).
 2. **Ana Sayfa** — günlük özet, diğer ekranlara geçiş.
 3. **Günlük Bildirim** — `daily_checkin` (mood_score 1-5 + not, günde 1 kez).
+3b. **Dershane Devam Bildirimi** — `daily_dershane_presence`: "Bugün
+   dershaneye gittin mi?" + giriş saati, akşam ~20.00 hatırlatmasıyla çıkış
+   saati. **Konum izni yok, konum toplanmıyor** — öz-bildirim. Karar:
+   [decisions/0006-dershane-devam-oz-bildirimi.md](../decisions/0006-dershane-devam-oz-bildirimi.md),
+   ekran detayı flows/android-student.md. Rehberlik web paneli bu veriyi
+   okuyan tarafı **hazır** (`/rehberlik/students/[id]` → "Dershane düzeni").
 4. **Çalışma Kaydı Ekle / Geçmişi** — `study_session` (type: serbest).
 5. **Soru Kaydı Ekle** — `question_log`.
 6. **Ödev Listesi / Detayı** — `homework_assignment` (durum güncelleme, satır

@@ -100,6 +100,35 @@ navigasyon/hub).
 - İnternet yoksa → yerel kuyruğa alınır, bağlantı gelince senkronize edilir
   (PDF §10, idempotency ile)
 
+### Ekran: Dershane Devam Bildirimi
+
+**Amaç:** Öğrencinin "bugün dershaneye gittim mi?" sorusunu cevaplaması
+(`daily_dershane_presence`). Karar ve sınırları:
+[decisions/0006-dershane-devam-oz-bildirimi.md](../decisions/0006-dershane-devam-oz-bildirimi.md).
+**Erişim:** Öğrenci, günde 1 kayıt
+(`UNIQUE (tenant_id, student_id, attendance_date)` — ikinci girişte düzenleme).
+
+**Akış:**
+1. Gün içinde (ya da Ana Sayfa'daki kart üzerinden): **"Bugün dershaneye
+   gittin mi?"** → Evet / Hayır.
+2. "Evet" ise **giriş saati** sorulur (`arrived_at`).
+3. Akşam **~20.00 civarında bir hatırlatma** → **çıkış saati** (`departed_at`).
+   Öğrenci hâlâ dershanedeyse "henüz çıkmadım" diyebilmeli; alan boş kalır,
+   ertesi gün doldurabilir. Giriş dolu/çıkış boş normal bir ara durumdur.
+
+**Alanlar:** `attendance_date` (bugün), `attended` (bool), `arrived_at`,
+`departed_at`, `report_source` = `student_self_report` (sabit),
+`client_record_id` (cihazda üretilen UUID).
+
+**Dil (kritik):** Bu ekran bir yoklama/kontrol ekranı değil. Metinler
+"devamsızlık", "ceza", "zorunlu" gibi kelimeler içermez; "Hayır" cevabı
+suçlayıcı bir uyarı üretmez. **Konum izni istenmez, konum toplanmaz** —
+bilgi tamamen öğrencinin beyanıdır.
+
+**Hata/uç durumlar:**
+- İnternet yoksa → yerel kuyruğa alınır (diğer kayıtlarla aynı mekanizma).
+- "Hayır" seçilirse saat alanları gizlenir; DB'de de bu bir CHECK constraint.
+
 ### Ekran: Çalışma Kaydı Ekle
 
 **Amaç:** Serbest çalışma süresi kaydı girmek (`study_session`).

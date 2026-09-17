@@ -158,6 +158,29 @@ değerlendirme), `note` (serbest metin, opsiyonel), `client_record_id`.
 `UNIQUE (tenant_id, student_id, checkin_date)` — günde bir kayıt kuralını DB
 seviyesinde de zorunlu kılar.
 
+## Dershane devam öz-bildirimi
+
+Karar ve sınırları: [decisions/0006-dershane-devam-oz-bildirimi.md](decisions/0006-dershane-devam-oz-bildirimi.md).
+**Konum verisi toplanmaz.** Bu tablo öğrencinin kendi beyanıdır — kesin devam
+kanıtı veya disiplin verisi değildir, bu yüzden hiçbir ekranda bundan otomatik
+puan/skor üretilmez.
+
+### `daily_dershane_presence`
+`id`, `tenant_id`, `student_id`, `attendance_date`, `attended` (bool),
+`arrived_at` (time, nullable), `departed_at` (time, nullable),
+`report_source` (`student_self_report` — ileride kurum yoklaması eklenirse
+yeni değer), `client_record_id`.
+`UNIQUE (tenant_id, student_id, attendance_date)` — günde bir kayıt.
+`UNIQUE (tenant_id, client_record_id)` — offline kuyruk idempotency'si.
+`CHECK (attended or (arrived_at is null and departed_at is null))` —
+"gitmedim" denmişse saat olamaz.
+
+**RLS istisnası:** bu tabloda generic `tenant_isolation` politikası
+kullanılmaz. Android doğrudan Supabase'e bağlandığı için öğrencinin yalnızca
+kendi satırlarını görmesi DB seviyesinde garanti edilir
+(`presence_student_own`), personel ise yalnızca okuyabilir
+(`presence_staff_read`). Bkz. `supabase/migrations/0006_daily_dershane_presence.sql`.
+
 ## Telefon kullanım istatistikleri
 
 ### `phone_usage_log`

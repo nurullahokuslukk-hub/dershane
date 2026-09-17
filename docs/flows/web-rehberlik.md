@@ -2,8 +2,15 @@
 title: "Akış: Web — Rehberlik"
 description: Rehberlik rolünün web panelindeki tüm ekranları ve akışı — ürünün en kritik paneli.
 status: done
-updated_at: 2026-09-15
+updated_at: 2026-09-17
 ---
+
+> **Uygulama durumu (2026-09-17):** Öğrenci Listesi (`/rehberlik`) ve Öğrenci
+> Profili (`/rehberlik/students/[id]`) yazıldı. Profilde şu an **Dershane
+> Düzeni**, **Deneme Sonuçları** ve **Görüşmeler & Notlar** bölümleri var.
+> Çalışma/Etüt, Ödevler, Telefon Kullanımı ve Günlük Bildirimler bölümleri
+> henüz yazılmadı — bu kategorilerde veri üretecek akış (Faz 2, Android)
+> henüz yayında değil, boş sekme göstermek yerine ertelendi.
 
 # Akış: Web — Rehberlik
 
@@ -45,10 +52,40 @@ değiştiği" (PDF §3) vurgusu her bölümde zaman serisi (liste + basit grafik
   telefon kullanımı artabilir" gibi ilişkileri **göstermek** için, otomatik
   yorumlamadan)
 
+### Bölüm: Dershane Düzeni
+
+Karar ve sınırları: [decisions/0006-dershane-devam-oz-bildirimi.md](../decisions/0006-dershane-devam-oz-bildirimi.md).
+**Durum:** Yazıldı (2026-09-17).
+
+**Gösterilen veri:** Son 30 günün `daily_dershane_presence` kayıtları —
+tarih, gittim/gitmedim, giriş saati, çıkış saati ve her satırda kaynak:
+**"Öğrencinin beyanı"**. Üstte özet: gittim/gitmedim/bildirim girilmemiş gün
+sayıları ve giriş+çıkış dolu günlerin ortalama kalış süresi.
+
+**Her zaman görünen uyarı:** bu bilgi öğrencinin kendi beyanıdır, konumla
+doğrulanmaz, kesin devam kanıtı ya da disiplin verisi değildir.
+
+**Konuşma sinyalleri (puan değil):** son bir haftada 3+ gün "gitmedim"
+işaretlenmişse → *"Bu hafta düzenini konuşmak ister misiniz?"*; günlerin
+çoğunda bildirim yoksa → *"Bu bir devamsızlık göstergesi değil — öğrenci
+uygulamayı kullanmayı unutuyor ya da zorlanıyor olabilir."*; aksi halde nötr
+bir bilgi. Saatler ters girilmişse (yazım hatası) satır "hatalı" diye
+işaretlenmez, yalnızca ortalamaya katılmaz.
+
+**Bilinçli olarak YOK:** devamsızlık yüzdesi/puanı, "tutarsız beyan" uyarısı,
+otomatik disiplin çıktısı, kırmızı/sarı/yeşil renklendirme.
+
+**Veri yüklenemezse:** bölüm "veri yok" demez — yüklenemediğini söyler.
+(Şema uyuşmazlığında sessizce boş liste göstermek, rehberliğe yanlış bilgi
+vermek olurdu; bu bir kez gerçekten oldu, bkz. STATE.md 2026-09-17.)
+
 ### Sekme: Deneme Sonuçları
 
+**Durum:** Yazıldı (2026-09-17) — denemeye göre gruplanmış ders bazlı
+D/Y/B/net tablosu + deneme başına toplam net.
+
 **Gösterilen veri:** `mock_exam` + `mock_exam_subject_result` listesi, zaman
-içindeki net trendi (grafik).
+içindeki net trendi (grafik — henüz yazılmadı).
 
 ### Sekme: Çalışma & Etüt
 
@@ -82,6 +119,12 @@ notlar (kronolojik liste).
 **Hata/uç durumlar (tüm profil ekranı için):**
 - Bir kategoride veri yoksa boş durum mesajı ("henüz veri yok" — suçlayıcı değil,
   bilgilendirici dil, bkz. [CLAUDE.md](../../CLAUDE.md) felsefe kuralı)
+
+> **Not (2026-09-17):** Aşağıdaki iki ekran ayrı sayfa olarak değil, öğrenci
+> profilindeki "Görüşmeler ve notlar" bölümünde tek bir formda birleştirildi
+> (form üstündeki "Hızlı not / Görüşme kaydı" seçimiyle). Pratikte rehberlik
+> ikisi arasında gidip geliyor, ayrı sayfalara bölmek gereksiz tıklamaydı.
+> Kaydedilen veri ve tablolar değişmedi.
 
 ## Ekran: Rehberlik Görüşmesi Ekle
 

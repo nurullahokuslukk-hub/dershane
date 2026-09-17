@@ -52,7 +52,7 @@ Faz 1 içeride alt adımlara bölündü (kullanıcıyla konuşulan sıra, bkz. S
 | **A** | Dershane/şube/sınıf/öğretmen/rehberlik CRUD, tenant seçici, audit log | ✅ bitti |
 | **B** | Roster (öğrenci + öğretmen) toplu CSV içe aktarma + claim kodları | ✅ bitti |
 | **C** | Deneme oluşturma, deneme sonucu toplu CSV içe aktarma, deneme detayı, öğrenci detayı | ✅ bitti |
-| **D** | Rehberlik paneli: atanmış öğrenci listesi + öğrenci profili | ⏳ sürüyor |
+| **D** | Rehberlik paneli: atanmış öğrenci listesi + öğrenci profili (dershane düzeni, deneme sonuçları, görüşme/not) | ✅ bitti |
 
 Admin paneli A–C ile "eksiksiz" sayılıyor: ortak tasarım sistemi
 (`src/components/ui/`, `globals.css` tokenları), gruplu menü, öğrenci arama/

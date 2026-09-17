@@ -151,11 +151,11 @@ export function RosterImportClient({
         <p>
           <strong>1) İndir</strong> — aşağıdaki şablon, hangi bilgiyi hangi
           sütuna yazacağını gösteren <em>boş</em> bir örnek dosyadır (sistem
-          dershaneden gelen PDF'i kendisi okuyamıyor, format dershaneden
+          dershaneden gelen PDF&apos;i kendisi okuyamıyor, format dershaneden
           dershaneye değiştiği için güvenilir olmuyor).
         </p>
         <p>
-          <strong>2) Doldur</strong> — dershaneden gelen PDF'teki öğrenci/
+          <strong>2) Doldur</strong> — dershaneden gelen PDF&apos;teki öğrenci/
           öğretmen isimlerini, kendi bilgisayarında bu şablonun sütunlarına
           yaz (Excel/Google Sheets ile açıp doldurabilir, CSV olarak kaydet).
         </p>

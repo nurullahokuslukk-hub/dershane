@@ -12,6 +12,72 @@ En yeni girdi en üstte. Format için [AGENTS.md](AGENTS.md) → "STATE.md giri�
 
 ---
 
+## 2026-09-17 — Faz D: Rehberlik paneli + "Dershane düzeni" (devam öz-bildirimi)
+
+Rehberlik paneli stub'dan çıkarıldı: `/rehberlik` (atanmış öğrenci listesi, son
+görüşme tarihiyle) ve `/rehberlik/students/[id]` (öğrenci profili). Profilde üç
+bölüm: **Dershane düzeni**, **Deneme sonuçları**, **Görüşmeler ve notlar**
+(`guidance_note`/`guidance_session`, tek formda birleştirildi —
+`POST /api/rehberlik/notes`). Çalışma/ödev/telefon bölümleri bilinçli olarak
+yazılmadı: o kategorilerde veri üretecek Android henüz yayında değil, boş sekme
+göstermek yerine ertelendi.
+
+**Yetki:** rehberlik yalnızca `guidance_student_assignment` ile kendisine
+atanmış öğrenciyi görür. `src/lib/guidance/access.ts` tek kapı; hem sayfa hem
+API her istekte atamayı yeniden doğruluyor, URL'deki id'ye asla güvenilmiyor.
+Tarayıcıda doğrulandı: atanmamış öğrencinin sayfası **404**, o öğrenciye not
+yazma denemesi **403**, rehberlik hesabıyla `/admin/students` → `/rehberlik`'e
+yönlendirme.
+
+**Dershane düzeni** (karar:
+[decisions/0006-dershane-devam-oz-bildirimi.md](docs/decisions/0006-dershane-devam-oz-bildirimi.md)):
+son 30 günün kayıtları — tarih, gittim/gitmedim, giriş, çıkış ve her satırda
+**"Öğrencinin beyanı"** kaynağı. Üstte gün sayıları + ortalama kalış. Puan,
+devamsızlık yüzdesi, "tutarsız beyan" uyarısı, otomatik disiplin çıktısı **yok**;
+bunun yerine nazik konuşma sinyalleri ("Bu hafta düzenini konuşmak ister
+misiniz?" / "Bu bir devamsızlık göstergesi değil — öğrenci uygulamayı kullanmayı
+unutuyor olabilir"). Bu kuralı kod seviyesinde sabitlemek için sinyal metinlerini
+test ediyoruz (`presence.test.ts`: üretilen hiçbir metinde "devamsız/ceza/uyarı/
+yalan/puan" geçmiyor).
+
+**Ciddi bir hata yakalandı ve düzeltildi.** `daily_dershane_presence` tablosu
+kullanıcının Supabase projesinde **zaten uygulanmıştı** ama migration dosyası
+depoya hiç girmemişti; ben tabloyu `presence_date`/`left_at`/`note` sütunlarıyla
+varsaymıştım, canlı şema ise `attendance_date`/`departed_at` kullanıyor ve `note`
+içermiyor. PostgREST bu sorguya hata döndürüyordu, ama kodum yalnızca "tablo yok"
+hata kodlarına baktığı için hatayı yutup **"bu öğrenci henüz hiç devam bildirimi
+girmemiş"** yazdırıyordu — rehberliğe sessizce yanlış bilgi. İki düzeltme:
+(1) canlı şema PostgREST OpenAPI ile okunup kod ve migration birebir ona
+hizalandı; (2) artık **herhangi bir** sorgu hatası yutulmuyor, bölüm "veri yok"
+demek yerine "yüklenemedi" diyor.
+
+`supabase/migrations/0006_daily_dershane_presence.sql` bu yüzden bir
+*yeniden yapılandırma*: sütun adları canlı veritabanından alındı (uydurulmadı),
+tamamen guard'lı (mevcut DB'de no-op, sıfırdan kurulan projede doğru tabloyu
+kurar). RLS kısmı bilinçli olarak generic `tenant_isolation`'dan farklı: Android
+ayrı backend olmadan doğrudan Supabase'e bağlandığı için, generic politika bir
+öğrencinin **tüm dershanenin** devam bilgisini okumasına izin verirdi. Bunun
+yerine `presence_student_own` (öğrenci sadece kendi satırları) +
+`presence_staff_read` (personel salt okuma) var.
+
+**Test altyapısı eklendi** (kullanıcı "ilgili testleri çalıştır" dedi, repoda hiç
+test yoktu): yeni bağımlılık **yok** — Node'un yerleşik `node --test` koşucusu +
+`scripts/test-alias-hook.mjs` (tsconfig'deki `@/` alias'ını Node'a tanıtan küçük
+resolve hook'u). 20 test: devam özeti/sinyalleri, deneme sonucu satır doğrulama
+(virgüllü ondalık, aynı isimli öğrenci, mükerrer satır), deneme gruplama.
+`npm test`, ayrıca `npm run check` (test + tsc + build).
+
+**Doğrulama için kullanıcının Supabase projesine test verisi girildi** (`başarı`
+dershanesi): 3 test öğrencisi, bir deneme + sonuçları, 18 gün devam kaydı ve
+`rehberlik.test@example.com` / `Rehberlik.123` ile doğrulanmış bir rehberlik
+hesabı. Test sırasında oluşan mükerrer deneme kaydı silindi. Kullanıcı isterse
+bu test verisi temizlenebilir.
+
+**Sırada:** 0007 migration'ının Supabase'de çalıştırılması; rehberlik profilinde
+net trend grafiği; Android'den gerçek veri gelmeye başlayınca çalışma/ödev/
+telefon bölümleri. Ayrıca 0005 (Android RLS) hâlâ depoda yok — Codex push
+edince ya da kullanıcı çalıştırdığı SQL'i verince depoya alınmalı.
+
 ## 2026-09-17 — Admin paneli tamamlandı: tasarım sistemi + öğrenci ekranları + Faz C (deneme sonuçları)
 
 Kullanıcı "önce admin sayfasını komple, fazlarını eksiksiz tamamla" dedi. Üç iş

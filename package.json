@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/test-alias-hook.mjs --test \"src/**/*.test.ts\"",
+    "check": "npm run test && npx tsc --noEmit && npm run build"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.74.0",

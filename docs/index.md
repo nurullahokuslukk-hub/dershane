@@ -27,16 +27,26 @@ tasarım sistemine taşındı (`src/components/ui/`, `globals.css` tokenları) v
 [decisions/0004-csv-only-import.md](decisions/0004-csv-only-import.md)).
 
 **⚠️ Bekleyen migration:** `supabase/migrations/0007_exam_integrity_and_indexes.sql`
-Supabase SQL Editor'da çalıştırılmalı. Ayrıca `0005`/`0006` numaraları depoda
-boş — bkz. STATE.md 2026-09-17 "Numaralandırma notu".
+Supabase SQL Editor'da çalıştırılmalı. `0006` canlı veritabanında zaten var
+(dosya sonradan depoya alındı, guard'lı — tekrar çalıştırmak zararsız, RLS
+politikalarını düzeltir). **`0005` (Android RLS) hâlâ depoda yok** — Codex push
+etmedi; bkz. STATE.md 2026-09-17.
+
+**Testler:** `npm test` (Node'un yerleşik koşucusu, ek bağımlılık yok) ·
+`npm run check` = test + `tsc --noEmit` + `next build`.
 
 **Faz 2 (Android) paralel olarak başladı — Codex geliştiriyor.** Native
 Android/Kotlin ([decisions/0005-android-native-kotlin.md](decisions/0005-android-native-kotlin.md)),
 detaylı brief: [phases/phase-2-android.md](phases/phase-2-android.md). Ayrı bir
 backend yazılmıyor — aynı Supabase projesine doğrudan bağlanıyor.
 
-Web tarafında sırada: **Faz D — rehberlik paneli** (atanmış öğrenci listesi,
-öğrenci profili, deneme sonuçları, dershane devam öz-bildirimi).
+**Faz D (rehberlik paneli) de tamamlandı:** `/rehberlik` atanmış öğrenci
+listesi, `/rehberlik/students/[id]` öğrenci profili — Dershane düzeni
+(devam öz-bildirimi, [decisions/0006](decisions/0006-dershane-devam-oz-bildirimi.md)),
+deneme sonuçları, görüşme/not kaydı.
+
+Web tarafında sırada: net trend grafiği, ve Android'den veri gelmeye
+başlayınca rehberlik profiline çalışma/ödev/telefon bölümleri.
 Detaylı plan ve gerekçe: STATE.md 2026-09-16 girdisi. Kurulum:
 [guides/supabase-vercel-kurulum.md](guides/supabase-vercel-kurulum.md).
 
