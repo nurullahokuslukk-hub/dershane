@@ -2,6 +2,17 @@ import Link from "next/link";
 import { getViewer, requireRole } from "@/lib/auth/viewer";
 import { getActiveTenantId } from "@/lib/tenant-context";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { NoTenantNotice } from "@/components/admin/NoTenantNotice";
+import {
+  btnPrimary,
+  table,
+  tableWrap,
+  td,
+  th,
+  trHover,
+} from "@/components/ui/styles";
 
 // Ekran: web-dershane-admin.md → "Ekran: Sınıf Listesi"
 export default async function ClassesPage({
@@ -16,13 +27,7 @@ export default async function ClassesPage({
   const tenantId = await getActiveTenantId(viewer);
   const { branch: branchFilter } = await searchParams;
 
-  if (!tenantId) {
-    return (
-      <p className="text-sm text-black/60 dark:text-white/60">
-        Önce üstteki menüden bir dershane seç.
-      </p>
-    );
-  }
+  if (!tenantId) return <NoTenantNotice />;
 
   const supabase = await createClient();
   const { data: branches } = await supabase
@@ -33,7 +38,9 @@ export default async function ClassesPage({
 
   const baseQuery = supabase
     .from("class_group")
-    .select("id, name, academic_year, branch:branch_id(id, name), student_profile(count)")
+    .select(
+      "id, name, academic_year, branch:branch_id(id, name), student_profile(count)",
+    )
     .eq("tenant_id", tenantId);
   const { data: classes } = await (branchFilter
     ? baseQuery.eq("branch_id", branchFilter)
@@ -51,60 +58,105 @@ export default async function ClassesPage({
     >();
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">Sınıflar</h1>
-        <Link
-          href="/admin/classes/new"
-          className="rounded-md bg-black px-3 py-1.5 text-sm text-white dark:bg-white dark:text-black"
-        >
-          Sınıf Ekle
-        </Link>
-      </div>
+    <>
+      <PageHeader
+        title="Sınıflar"
+        description="Her sınıf bir şubeye bağlıdır. Öğrenciler ve öğretmenler sınıf üzerinden eşleşir."
+        action={
+          <Link href="/admin/classes/new" className={btnPrimary}>
+            Sınıf Ekle
+          </Link>
+        }
+      />
 
       {branches && branches.length > 0 && (
-        <div className="flex flex-wrap gap-2 text-sm">
-          <Link
-            href="/admin/classes"
-            className={!branchFilter ? "font-semibold underline" : "text-black/60 dark:text-white/60"}
-          >
+        <div className="flex flex-wrap items-center gap-1.5 text-sm">
+          <FilterChip href="/admin/classes" active={!branchFilter}>
             Tümü
-          </Link>
+          </FilterChip>
           {branches.map((b) => (
-            <Link
+            <FilterChip
               key={b.id}
               href={`/admin/classes?branch=${b.id}`}
-              className={
-                branchFilter === b.id
-                  ? "font-semibold underline"
-                  : "text-black/60 dark:text-white/60"
-              }
+              active={branchFilter === b.id}
             >
               {b.name}
-            </Link>
+            </FilterChip>
           ))}
         </div>
       )}
 
-      {(!classes || classes.length === 0) && (
-        <p className="text-sm text-black/60 dark:text-white/60">
-          Henüz sınıf yok.
-        </p>
+      {!classes || classes.length === 0 ? (
+        <EmptyState
+          title="Sınıf bulunamadı"
+          description="Roster içe aktarmadan önce sınıfların oluşturulmuş olması gerekiyor — öğrenciler sınıf adıyla eşleşiyor."
+          action={
+            <Link href="/admin/classes/new" className={btnPrimary}>
+              Sınıf Ekle
+            </Link>
+          }
+        />
+      ) : (
+        <div className={tableWrap}>
+          <table className={table}>
+            <thead>
+              <tr>
+                <th className={th}>Sınıf</th>
+                <th className={th}>Şube</th>
+                <th className={th}>Eğitim Yılı</th>
+                <th className={th}>Öğrenci</th>
+              </tr>
+            </thead>
+            <tbody>
+              {classes.map((c) => (
+                <tr key={c.id} className={trHover}>
+                  <td className={`${td} font-medium`}>
+                    <Link
+                      href={`/admin/classes/${c.id}`}
+                      className="hover:underline"
+                    >
+                      {c.name}
+                    </Link>
+                  </td>
+                  <td className={`${td} text-muted`}>{c.branch?.name ?? "—"}</td>
+                  <td className={`${td} text-muted`}>{c.academic_year}</td>
+                  <td className={td}>
+                    <Link
+                      href={`/admin/students?class=${c.id}`}
+                      className="tabular-nums hover:underline"
+                    >
+                      {c.student_profile[0]?.count ?? 0}
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
+    </>
+  );
+}
 
-      <ul className="divide-y divide-black/10 dark:divide-white/10">
-        {classes?.map((c) => (
-          <li key={c.id} className="py-2 text-sm">
-            <Link href={`/admin/classes/${c.id}`} className="hover:underline">
-              <span className="font-medium">{c.name}</span>
-            </Link>{" "}
-            <span className="text-black/50 dark:text-white/50">
-              · {c.branch?.name} · {c.academic_year} ·{" "}
-              {c.student_profile[0]?.count ?? 0} öğrenci
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
+function FilterChip({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+        active
+          ? "border-brand bg-brand-soft font-medium text-brand-soft-fg"
+          : "border-border text-muted hover:bg-surface-hover"
+      }`}
+    >
+      {children}
+    </Link>
   );
 }

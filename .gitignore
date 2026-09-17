@@ -50,3 +50,6 @@ android/*/build/
 android/.idea/
 *.keystore
 *.jks
+
+# codex yerel ortam dosyaları (araç tarafından üretiliyor, paylaşılmıyor)
+.codex/

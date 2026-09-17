@@ -31,7 +31,7 @@ export function TenantSwitcher({
       value={activeTenantId ?? ""}
       onChange={handleChange}
       disabled={pending}
-      className="rounded-md border border-black/15 bg-transparent px-2 py-1 text-sm dark:border-white/15"
+      className="max-w-[14rem] rounded-lg border border-border bg-surface px-2.5 py-1.5 text-sm text-foreground disabled:opacity-50"
     >
       <option value="" disabled>
         Dershane seç

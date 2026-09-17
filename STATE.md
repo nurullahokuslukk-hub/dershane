@@ -12,6 +12,69 @@ En yeni girdi en üstte. Format için [AGENTS.md](AGENTS.md) → "STATE.md giri�
 
 ---
 
+## 2026-09-17 — Admin paneli tamamlandı: tasarım sistemi + öğrenci ekranları + Faz C (deneme sonuçları)
+
+Kullanıcı "önce admin sayfasını komple, fazlarını eksiksiz tamamla" dedi. Üç iş
+birlikte yapıldı.
+
+**1) Ortak tasarım sistemi** (kullanıcının "görsel tasarım çok basit" geri
+bildirimi): `globals.css`'e renk tokenları eklendi (surface/border/muted/brand/
+success/warning/danger, karanlık mod aynı isimleri yeniden tanımlıyor — artık
+bileşenlerde `dark:` varyantı yazılmıyor). `src/components/ui/` altında
+paylaşılan primitifler: `styles.ts` (buton/input/tablo sınıf demetleri), `Card`,
+`PageHeader`, `Badge`, `EmptyState`, `Pagination`. `AppShell` yenilendi: marka
+işareti, kullanıcı çipi, ve `SideNav` (tek client parçası — `usePathname` ile
+aktif bağlantı vurgusu) ile Genel/Kurum/Kişiler/Akademik/Sistem başlıklı gruplu
+menü + "Doğrulanmamış" üzerinde bekleyen iş rozeti. Tüm admin ekranları,
+`/login`, `/claim`, `/forgot-password` bu tokenlara taşındı.
+
+**2) Öğrenci ekranları** (admin panelindeki en büyük boşluktu — öğrenci
+listesi hiç yoktu, sayaç `/admin/classes`'a link veriyordu): `/admin/students`
+(isimle arama + sınıf filtresi + 50'şerli **sunucu taraflı sayfalama**;
+`user_account` taban tablo, `student_profile!inner` ile bağlanıyor) ve
+`/admin/students/[id]` (hesap durumu/claim kodu, rehberlik ataması, denemeye
+göre gruplanmış ders bazlı sonuçlar + toplam net).
+
+**3) Faz C — deneme sonucu toplu içe aktarma:** `/admin/exams` (+`new`, `[id]`),
+`/admin/import/exam-results`, `POST /api/admin/mock-exams`,
+`POST /api/admin/import/exam-results`, `src/lib/import/exam-schema.ts`,
+`public/templates/deneme-sonuc-sablon.csv`. Roster ile aynı altyapı
+(CSV + `ImportPreviewTable`). Kararlar: **net dosyadan olduğu gibi alınıyor,
+yeniden hesaplanmıyor** (ceza katsayısı sınav türüne göre değişiyor, ikinci bir
+doğruluk kaynağı yaratmak istemedik); aynı dosyadaki tekrar eden (öğrenci+ders)
+satırları önizlemede hata olarak işaretleniyor (yoksa upsert sessizce birini
+ezerdi); `(mock_exam_id, student_id, subject)` üzerinde upsert, yani düzeltilmiş
+dosya tekrar yüklenince çift kayıt değil güncelleme oluyor; 5000 satır üst
+sınırı, 500'lük parçalar halinde yazım.
+
+**Tarayıcıda uçtan uca doğrulandı** (gerçek Supabase, `başarı` dershanesi):
+3 test öğrencisi roster API'siyle oluşturuldu → deneme oluşturuldu → 6 sonuç
+satırı yüklendi → **aynı yükleme ikinci kez yapıldığında çift kayıt oluşmadı**
+(deneme detayında hâlâ 3 öğrenci) → başka tenant'ın öğrenci id'si gönderildiğinde
+400 "Bazı öğrenciler bu dershaneye ait değil" döndü → öğrenci detayında sonuçlar
+ve toplam net doğru göründü. Bu sırada bir hata yakalanıp düzeltildi: dashboard
+"öğrencilerin %-67'si hesabını aktifleştirdi" yazıyordu — doğrulanmamış hesap
+sayacı tüm rolleri kapsıyor, öğrenci oranına bölünemezdi; ayrı bir sorgu eklendi.
+
+**Yeni migration: `0007_exam_integrity_and_indexes.sql` — Supabase SQL
+Editor'da çalıştırılmalı.** İçeriği: `mock_exam (tenant_id, name, exam_date)`
+tekillik kısıtı (tarayıcı testinde aynı denemenin iki kez oluşturulabildiği
+doğrulandı, kısıt olmadan engellenmiyor) + admin sorgularının dayandığı 6 indeks
+(öğrenci listesi isme göre sıralı sayfalanıyor, deneme detayı tek denemenin tüm
+satırlarını çekiyor — yüz binlerce kayıtta seq scan'e düşerdi).
+
+**Numaralandırma notu:** `0005` ve `0006` bu depoda YOK. Kullanıcı "0005 Android
+RLS uygulandı" ve "0006 daily_dershane_presence uygulanmalı" dedi ama Codex
+henüz hiçbir şey push etmemiş (`origin/master` = `e681fde`, `android/` dizini
+yok). Bu yüzden benim migration'ım 0007 numarasını aldı; 0005/0006 yerleri
+Codex'in push'u (veya kullanıcının çalıştırdığı SQL'in depoya alınması) için
+boş bırakıldı.
+
+**Sırada:** Faz D — rehberlik paneli (atanmış öğrenci listesi + öğrenci profili),
+ve içinde kullanıcının istediği "Dershane düzeni" (günlük devam öz-bildirimi)
+bölümü. Bunun `daily_dershane_presence` tablosu henüz depoda olmadığı için
+migration'ı da yazılacak.
+
 ## 2026-09-17 — Roster içe aktarma sayfası netleştirildi, sistem admin için genel arama eklendi
 
 Kullanıcı roster içe aktarma sayfasındaki "şablon indir" adımının neden

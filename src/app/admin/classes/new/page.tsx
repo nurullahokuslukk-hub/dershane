@@ -2,6 +2,7 @@ import { getViewer, requireRole } from "@/lib/auth/viewer";
 import { getActiveTenantId } from "@/lib/tenant-context";
 import { createClient } from "@/lib/supabase/server";
 import { ClassForm } from "@/components/admin/ClassForm";
+import { NoTenantNotice } from "@/components/admin/NoTenantNotice";
 
 export default async function NewClassPage() {
   const viewer = requireRole(await getViewer(), [
@@ -10,13 +11,7 @@ export default async function NewClassPage() {
   ]);
   const tenantId = await getActiveTenantId(viewer);
 
-  if (!tenantId) {
-    return (
-      <p className="text-sm text-black/60 dark:text-white/60">
-        Önce üstteki menüden bir dershane seç.
-      </p>
-    );
-  }
+  if (!tenantId) return <NoTenantNotice />;
 
   const supabase = await createClient();
   const { data: branches } = await supabase
@@ -27,7 +22,7 @@ export default async function NewClassPage() {
 
   if (!branches || branches.length === 0) {
     return (
-      <p className="text-sm text-black/60 dark:text-white/60">
+      <p className="text-sm text-muted">
         Sınıf eklemeden önce en az bir şube oluşturman gerekiyor.
       </p>
     );
@@ -35,7 +30,7 @@ export default async function NewClassPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-semibold">Sınıf Ekle</h1>
+      <h1 className="text-xl font-semibold tracking-tight">Sınıf Ekle</h1>
       <ClassForm tenantId={tenantId} branches={branches} />
     </div>
   );

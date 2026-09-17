@@ -2,6 +2,7 @@ import { getViewer, requireRole } from "@/lib/auth/viewer";
 import { getActiveTenantId } from "@/lib/tenant-context";
 import { createClient } from "@/lib/supabase/server";
 import { RosterImportClient } from "@/components/admin/RosterImportClient";
+import { NoTenantNotice } from "@/components/admin/NoTenantNotice";
 
 // Ekran: web-dershane-admin.md → "Ekran: Toplu İçe Aktar"
 export default async function RosterImportPage() {
@@ -11,13 +12,7 @@ export default async function RosterImportPage() {
   ]);
   const tenantId = await getActiveTenantId(viewer);
 
-  if (!tenantId) {
-    return (
-      <p className="text-sm text-black/60 dark:text-white/60">
-        Önce üstteki menüden bir dershane seç.
-      </p>
-    );
-  }
+  if (!tenantId) return <NoTenantNotice />;
 
   const supabase = await createClient();
   const { data: classes } = await supabase
@@ -38,7 +33,7 @@ export default async function RosterImportPage() {
 
   if (classInfos.length === 0) {
     return (
-      <p className="text-sm text-black/60 dark:text-white/60">
+      <p className="text-sm text-muted">
         Roster içe aktarmadan önce en az bir şube ve sınıf oluşturman
         gerekiyor.
       </p>

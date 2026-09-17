@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { btnXs } from "@/components/ui/styles";
 
 export function UnclaimedRowActions({
   accountId,
@@ -32,7 +33,7 @@ export function UnclaimedRowActions({
       <button
         type="button"
         onClick={handleCopy}
-        className="rounded-md border border-black/15 px-2 py-0.5 text-xs hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/5"
+        className={btnXs}
       >
         {copied ? "Kopyalandı" : "Kodu kopyala"}
       </button>
@@ -40,7 +41,7 @@ export function UnclaimedRowActions({
         type="button"
         onClick={handleRenew}
         disabled={loading}
-        className="rounded-md border border-black/15 px-2 py-0.5 text-xs hover:bg-black/5 disabled:opacity-50 dark:border-white/15 dark:hover:bg-white/5"
+        className={btnXs}
       >
         {loading ? "..." : "Kodu yenile"}
       </button>

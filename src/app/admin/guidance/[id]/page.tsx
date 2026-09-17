@@ -3,6 +3,7 @@ import { getViewer, requireRole } from "@/lib/auth/viewer";
 import { getActiveTenantId } from "@/lib/tenant-context";
 import { createClient } from "@/lib/supabase/server";
 import { GuidanceForm } from "@/components/admin/GuidanceForm";
+import { NoTenantNotice } from "@/components/admin/NoTenantNotice";
 
 export default async function EditGuidancePage({
   params,
@@ -15,13 +16,7 @@ export default async function EditGuidancePage({
     "system_admin",
   ]);
   const tenantId = await getActiveTenantId(viewer);
-  if (!tenantId) {
-    return (
-      <p className="text-sm text-black/60 dark:text-white/60">
-        Önce üstteki menüden bir dershane seç.
-      </p>
-    );
-  }
+  if (!tenantId) return <NoTenantNotice />;
 
   const supabase = await createClient();
   const [{ data: guidanceUser }, { data: classes }, { data: assignments }] =
@@ -67,7 +62,7 @@ export default async function EditGuidancePage({
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-semibold">Rehberlik Kullanıcısı Düzenle</h1>
+      <h1 className="text-xl font-semibold tracking-tight">Rehberlik Kullanıcısı Düzenle</h1>
       <GuidanceForm
         guidanceId={guidanceUser.id}
         tenantId={tenantId}

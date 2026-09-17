@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { btnPrimary, input, label } from "@/components/ui/styles";
 
 export function ClassForm({
   classId,
@@ -57,7 +58,7 @@ export function ClassForm({
   return (
     <form onSubmit={handleSubmit} className="max-w-sm space-y-4">
       <div className="space-y-1">
-        <label htmlFor="name" className="text-sm font-medium">
+        <label htmlFor="name" className={label}>
           Sınıf adı (örn. 12-A)
         </label>
         <input
@@ -66,12 +67,12 @@ export function ClassForm({
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-md border border-black/15 px-3 py-2 dark:border-white/15 dark:bg-transparent"
+          className={input}
         />
       </div>
 
       <div className="space-y-1">
-        <label htmlFor="branch" className="text-sm font-medium">
+        <label htmlFor="branch" className={label}>
           Şube
         </label>
         <select
@@ -79,7 +80,7 @@ export function ClassForm({
           required
           value={branchId}
           onChange={(e) => setBranchId(e.target.value)}
-          className="w-full rounded-md border border-black/15 px-3 py-2 dark:border-white/15 dark:bg-transparent"
+          className={input}
         >
           {branches.length === 0 && <option value="">Önce şube ekle</option>}
           {branches.map((b) => (
@@ -91,7 +92,7 @@ export function ClassForm({
       </div>
 
       <div className="space-y-1">
-        <label htmlFor="academicYear" className="text-sm font-medium">
+        <label htmlFor="academicYear" className={label}>
           Akademik yıl (örn. 2026-2027)
         </label>
         <input
@@ -100,16 +101,16 @@ export function ClassForm({
           required
           value={academicYear}
           onChange={(e) => setAcademicYear(e.target.value)}
-          className="w-full rounded-md border border-black/15 px-3 py-2 dark:border-white/15 dark:bg-transparent"
+          className={input}
         />
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
 
       <button
         type="submit"
         disabled={loading || branches.length === 0}
-        className="rounded-md bg-black px-3 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+        className={btnPrimary}
       >
         {loading ? "Kaydediliyor..." : "Kaydet"}
       </button>

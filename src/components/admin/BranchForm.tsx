@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { btnPrimary, input, label } from "@/components/ui/styles";
 
 export function BranchForm({
   branchId,
@@ -47,7 +48,7 @@ export function BranchForm({
   return (
     <form onSubmit={handleSubmit} className="max-w-sm space-y-4">
       <div className="space-y-1">
-        <label htmlFor="name" className="text-sm font-medium">
+        <label htmlFor="name" className={label}>
           Şube adı
         </label>
         <input
@@ -56,12 +57,12 @@ export function BranchForm({
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-md border border-black/15 px-3 py-2 dark:border-white/15 dark:bg-transparent"
+          className={input}
         />
       </div>
 
       <div className="space-y-1">
-        <label htmlFor="address" className="text-sm font-medium">
+        <label htmlFor="address" className={label}>
           Adres (opsiyonel)
         </label>
         <input
@@ -69,16 +70,16 @@ export function BranchForm({
           type="text"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          className="w-full rounded-md border border-black/15 px-3 py-2 dark:border-white/15 dark:bg-transparent"
+          className={input}
         />
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
 
       <button
         type="submit"
         disabled={loading}
-        className="rounded-md bg-black px-3 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+        className={btnPrimary}
       >
         {loading ? "Kaydediliyor..." : "Kaydet"}
       </button>

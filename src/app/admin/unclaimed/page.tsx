@@ -1,7 +1,12 @@
 import { getViewer, requireRole } from "@/lib/auth/viewer";
 import { getActiveTenantId } from "@/lib/tenant-context";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Badge } from "@/components/ui/Badge";
+import { NoTenantNotice } from "@/components/admin/NoTenantNotice";
 import { UnclaimedRowActions } from "@/components/admin/UnclaimedRowActions";
+import { table, tableWrap, td, th, trHover } from "@/components/ui/styles";
 
 const ROLE_LABEL: Record<string, string> = {
   ogrenci: "Öğrenci",
@@ -17,14 +22,7 @@ export default async function UnclaimedPage() {
     "system_admin",
   ]);
   const tenantId = await getActiveTenantId(viewer);
-
-  if (!tenantId) {
-    return (
-      <p className="text-sm text-black/60 dark:text-white/60">
-        Önce üstteki menüden bir dershane seç.
-      </p>
-    );
-  }
+  if (!tenantId) return <NoTenantNotice />;
 
   const supabase = await createClient();
   const { data: rows } = await supabase
@@ -33,6 +31,7 @@ export default async function UnclaimedPage() {
     .eq("tenant_id", tenantId)
     .eq("status", "unclaimed")
     .order("full_name")
+    .limit(500)
     .returns<
       {
         id: string;
@@ -47,52 +46,90 @@ export default async function UnclaimedPage() {
     >();
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-lg font-semibold">Doğrulanmamış Hesaplar</h1>
-      <p className="text-sm text-black/60 dark:text-white/60">
-        Bu kişiler henüz kendi e-posta/telefon + şifresini belirleyip hesabını
-        doğrulamadı. Kodu dershaneye ilet; kişi{" "}
-        <code className="rounded bg-black/5 px-1 dark:bg-white/10">/claim</code>{" "}
-        ekranından kendi hesabını aktifleştirir.
-      </p>
+    <>
+      <PageHeader
+        title="Doğrulanmamış Hesaplar"
+        description={
+          <>
+            Bu kişiler henüz kendi e-posta/telefon ve şifresini belirlemedi.
+            Kodu dershaneye ilet; kişi{" "}
+            <code className="rounded bg-surface-muted px-1 py-0.5 font-mono text-xs">
+              /claim
+            </code>{" "}
+            ekranından hesabını kendisi aktifleştirir — şifreleri senin tutman
+            gerekmiyor.
+          </>
+        }
+      />
 
-      {(!rows || rows.length === 0) && (
-        <p className="text-sm text-black/60 dark:text-white/60">
-          Doğrulanmamış hesap yok.
-        </p>
-      )}
-
-      <ul className="divide-y divide-black/10 dark:divide-white/10">
-        {rows?.map((r) => {
-          const claim = r.account_claim_code;
-          const expired = claim && new Date(claim.expires_at) < new Date();
-          return (
-            <li
-              key={r.id}
-              className="flex items-center justify-between gap-4 py-2 text-sm"
-            >
-              <span>
-                <span className="font-medium">{r.full_name}</span>{" "}
-                <span className="text-black/50 dark:text-white/50">
-                  · {ROLE_LABEL[r.role] ?? r.role}
-                  {claim && (
-                    <>
-                      {" "}
-                      · kod: <code>{claim.code}</code>{" "}
-                      {expired && (
-                        <span className="text-red-600">(süresi doldu)</span>
+      {!rows || rows.length === 0 ? (
+        <EmptyState
+          title="Bekleyen hesap yok"
+          description="Bu dershanedeki herkes hesabını doğrulamış görünüyor."
+        />
+      ) : (
+        <div className={tableWrap}>
+          <table className={table}>
+            <thead>
+              <tr>
+                <th className={th}>Ad Soyad</th>
+                <th className={th}>Rol</th>
+                <th className={th}>Doğrulama Kodu</th>
+                <th className={th}>Geçerlilik</th>
+                <th className={th}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => {
+                const claim = r.account_claim_code;
+                const expired =
+                  claim && new Date(claim.expires_at) < new Date();
+                return (
+                  <tr key={r.id} className={trHover}>
+                    <td className={`${td} font-medium`}>{r.full_name}</td>
+                    <td className={`${td} text-muted`}>
+                      {ROLE_LABEL[r.role] ?? r.role}
+                    </td>
+                    <td className={td}>
+                      {claim ? (
+                        <code className="rounded bg-surface-muted px-1.5 py-0.5 font-mono text-sm tracking-wider">
+                          {claim.code}
+                        </code>
+                      ) : (
+                        <span className="text-muted">kod yok</span>
                       )}
-                    </>
-                  )}
-                </span>
-              </span>
-              {claim && (
-                <UnclaimedRowActions accountId={r.id} code={claim.code} />
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+                    </td>
+                    <td className={td}>
+                      {claim ? (
+                        expired ? (
+                          <Badge tone="danger">süresi doldu</Badge>
+                        ) : (
+                          <span className="text-xs text-muted">
+                            {new Date(claim.expires_at).toLocaleDateString(
+                              "tr-TR",
+                            )}
+                            &apos;e kadar
+                          </span>
+                        )
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className={`${td} text-right`}>
+                      {claim && (
+                        <UnclaimedRowActions
+                          accountId={r.id}
+                          code={claim.code}
+                        />
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
   );
 }

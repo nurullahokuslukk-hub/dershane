@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { btnXs } from "@/components/ui/styles";
 
 // Global aramada bir sonuca tıklayınca system_admin'in aktif dershanesini
 // değiştirip o dershanenin panosuna atlamasını sağlar.
@@ -25,7 +26,7 @@ export function JumpToTenantButton({ tenantId }: { tenantId: string }) {
       type="button"
       onClick={handleClick}
       disabled={loading}
-      className="rounded-md border border-black/15 px-2 py-0.5 text-xs hover:bg-black/5 disabled:opacity-50 dark:border-white/15 dark:hover:bg-white/5"
+      className={btnXs}
     >
       {loading ? "..." : "Bu dershaneye geç"}
     </button>

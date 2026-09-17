@@ -23,7 +23,7 @@ export default async function OgretmenDashboardPage() {
   return (
     <AppShell fullName={account.full_name} roleLabel="Öğretmen">
       <h1 className="text-lg font-semibold">Sınıflarım</h1>
-      <p className="mt-2 text-sm text-black/60 dark:text-white/60">
+      <p className="mt-2 text-sm text-muted">
         Atanmış sınıflar burada listelenecek.
       </p>
     </AppShell>

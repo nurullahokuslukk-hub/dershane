@@ -1,14 +1,13 @@
 "use client";
 
 import type { RowResult } from "@/lib/import/types";
+import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { input, table, tableWrap, td, th } from "@/components/ui/styles";
 
-const STATUS_LABEL: Record<string, { text: string; className: string }> = {
-  ok: { text: "✓ Geçerli", className: "text-green-600 dark:text-green-400" },
-  error: { text: "✗ Hatalı", className: "text-red-600 dark:text-red-400" },
-  "needs-review": {
-    text: "? Belirsiz",
-    className: "text-amber-600 dark:text-amber-400",
-  },
+const STATUS: Record<string, { text: string; tone: BadgeTone }> = {
+  ok: { text: "Geçerli", tone: "success" },
+  error: { text: "Hatalı", tone: "danger" },
+  "needs-review": { text: "Belirsiz", tone: "warning" },
 };
 
 export function ImportPreviewTable<T>({
@@ -21,59 +20,83 @@ export function ImportPreviewTable<T>({
   onResolve?: (rowNumber: number, candidateId: string) => void;
 }) {
   const okCount = rows.filter((r) => r.status === "ok").length;
+  const reviewCount = rows.filter((r) => r.status === "needs-review").length;
+  const errorCount = rows.filter((r) => r.status === "error").length;
 
   return (
     <div className="space-y-2">
-      <p className="text-sm text-black/60 dark:text-white/60">
-        {okCount} geçerli / {rows.length} toplam satır
-      </p>
-      <div className="overflow-x-auto rounded-md border border-black/10 dark:border-white/10">
-        <table className="w-full text-sm">
+      <div className="flex flex-wrap items-center gap-2 text-sm">
+        <Badge tone="success">{okCount} geçerli</Badge>
+        {reviewCount > 0 && <Badge tone="warning">{reviewCount} belirsiz</Badge>}
+        {errorCount > 0 && <Badge tone="danger">{errorCount} hatalı</Badge>}
+        <span className="text-muted">/ {rows.length} satır</span>
+        {errorCount > 0 && (
+          <span className="text-xs text-muted">
+            Hatalı satırlar diğerlerini engellemez — yalnızca geçerli olanlar
+            aktarılır.
+          </span>
+        )}
+      </div>
+
+      <div className={tableWrap}>
+        <table className={table}>
           <thead>
-            <tr className="border-b border-black/10 bg-black/[.02] text-left dark:border-white/10 dark:bg-white/[.03]">
-              <th className="p-2">Durum</th>
+            <tr>
+              <th className={th}>#</th>
+              <th className={th}>Durum</th>
               {columns.map((c) => (
-                <th key={c.key} className="p-2">
+                <th key={c.key} className={th}>
                   {c.label}
                 </th>
               ))}
-              <th className="p-2">Not</th>
+              <th className={th}>Not</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => {
-              const status = STATUS_LABEL[r.status];
+              const status = STATUS[r.status];
               return (
                 <tr
                   key={r.rowNumber}
-                  className="border-b border-black/5 last:border-0 dark:border-white/5"
+                  className={
+                    r.status === "error"
+                      ? "bg-danger-soft/40"
+                      : r.status === "needs-review"
+                        ? "bg-warning-soft/40"
+                        : undefined
+                  }
                 >
-                  <td className={`p-2 whitespace-nowrap ${status.className}`}>
-                    {status.text}
+                  <td className={`${td} text-xs text-muted tabular-nums`}>
+                    {r.rowNumber}
+                  </td>
+                  <td className={td}>
+                    <Badge tone={status.tone}>{status.text}</Badge>
                   </td>
                   {columns.map((c) => (
-                    <td key={c.key} className="p-2">
+                    <td key={c.key} className={td}>
                       {r.raw[c.key]}
                     </td>
                   ))}
-                  <td className="p-2 text-black/60 dark:text-white/60">
+                  <td className={`${td} text-muted`}>
                     {r.errors.join(", ")}
-                    {r.status === "needs-review" && r.candidates && onResolve && (
-                      <select
-                        defaultValue=""
-                        onChange={(e) => onResolve(r.rowNumber, e.target.value)}
-                        className="ml-2 rounded-md border border-black/15 px-1 py-0.5 text-xs dark:border-white/15 dark:bg-transparent"
-                      >
-                        <option value="" disabled>
-                          Seç
-                        </option>
-                        {r.candidates.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.label}
+                    {r.status === "needs-review" &&
+                      r.candidates &&
+                      onResolve && (
+                        <select
+                          defaultValue=""
+                          onChange={(e) => onResolve(r.rowNumber, e.target.value)}
+                          className={`${input} mt-1 max-w-xs py-1 text-xs`}
+                        >
+                          <option value="" disabled>
+                            Seç…
                           </option>
-                        ))}
-                      </select>
-                    )}
+                          {r.candidates.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.label}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                   </td>
                 </tr>
               );

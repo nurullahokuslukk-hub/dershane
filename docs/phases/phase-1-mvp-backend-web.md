@@ -45,10 +45,22 @@ katmanı.
 
 ## İlerleme
 
-Proje iskeleti kuruldu ve çalışıyor (bkz. STATE.md 2026-09-15): auth, rol bazlı
-yönlendirme, DB şeması + RLS, üç panel stub'ı. Kullanıcı Supabase/Vercel hesabını
-kurunca ([guides/supabase-vercel-kurulum.md](../guides/supabase-vercel-kurulum.md))
-gerçek panel içerikleri (dashboard verileri, CRUD ekranları) doldurulacak.
+Faz 1 içeride alt adımlara bölündü (kullanıcıyla konuşulan sıra, bkz. STATE.md):
+
+| Adım | Kapsam | Durum |
+|---|---|---|
+| **A** | Dershane/şube/sınıf/öğretmen/rehberlik CRUD, tenant seçici, audit log | ✅ bitti |
+| **B** | Roster (öğrenci + öğretmen) toplu CSV içe aktarma + claim kodları | ✅ bitti |
+| **C** | Deneme oluşturma, deneme sonucu toplu CSV içe aktarma, deneme detayı, öğrenci detayı | ✅ bitti |
+| **D** | Rehberlik paneli: atanmış öğrenci listesi + öğrenci profili | ⏳ sürüyor |
+
+Admin paneli A–C ile "eksiksiz" sayılıyor: ortak tasarım sistemi
+(`src/components/ui/`, `globals.css` tokenları), gruplu menü, öğrenci arama/
+listeleme/sayfalama, deneme sonucu döngüsü (yükle → gör) çalışıyor.
+
+Kullanıcı Supabase/Vercel hesabını kurdu
+([guides/supabase-vercel-kurulum.md](../guides/supabase-vercel-kurulum.md));
+migration'lar Supabase SQL Editor'dan elle uygulanıyor.
 
 ## Bitiş kriterleri
 

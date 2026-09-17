@@ -3,6 +3,7 @@ import { getViewer, requireRole } from "@/lib/auth/viewer";
 import { getActiveTenantId } from "@/lib/tenant-context";
 import { createClient } from "@/lib/supabase/server";
 import { BranchForm } from "@/components/admin/BranchForm";
+import { NoTenantNotice } from "@/components/admin/NoTenantNotice";
 
 export default async function EditBranchPage({
   params,
@@ -15,13 +16,7 @@ export default async function EditBranchPage({
     "system_admin",
   ]);
   const tenantId = await getActiveTenantId(viewer);
-  if (!tenantId) {
-    return (
-      <p className="text-sm text-black/60 dark:text-white/60">
-        Önce üstteki menüden bir dershane seç.
-      </p>
-    );
-  }
+  if (!tenantId) return <NoTenantNotice />;
 
   const supabase = await createClient();
   const { data: branch } = await supabase
@@ -35,7 +30,7 @@ export default async function EditBranchPage({
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-semibold">Şube Düzenle</h1>
+      <h1 className="text-xl font-semibold tracking-tight">Şube Düzenle</h1>
       <BranchForm branchId={branch.id} tenantId={tenantId} initial={branch} />
     </div>
   );

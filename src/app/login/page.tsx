@@ -3,6 +3,7 @@
 import { Suspense, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { btnPrimary, input, label } from "@/components/ui/styles";
 
 // Ekran tanımı: docs/flows/web-common.md → "Ekran: Giriş"
 function LoginForm() {
@@ -43,23 +44,23 @@ function LoginForm() {
     <main className="flex flex-1 items-center justify-center p-6">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm space-y-4 rounded-lg border border-black/10 p-6 dark:border-white/10"
+        className="w-full max-w-sm space-y-4 rounded-xl border border-border bg-surface p-6 shadow-[0_1px_2px_rgba(16,19,24,0.04)]"
       >
         <div>
           <h1 className="text-xl font-semibold">Giriş Yap</h1>
-          <p className="text-sm text-black/60 dark:text-white/60">
+          <p className="text-sm text-muted">
             Dershane Öğrenci Takip Sistemi
           </p>
         </div>
 
         {justClaimed && (
-          <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-400">
+          <p className="rounded-lg bg-success-soft px-3 py-2 text-sm text-success">
             Hesabın doğrulandı. Şimdi giriş yapabilirsin.
           </p>
         )}
 
         <div className="space-y-1">
-          <label htmlFor="identifier" className="text-sm font-medium">
+          <label htmlFor="identifier" className={label}>
             E-posta veya telefon
           </label>
           <input
@@ -69,12 +70,12 @@ function LoginForm() {
             autoComplete="username"
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
-            className="w-full rounded-md border border-black/15 px-3 py-2 dark:border-white/15 dark:bg-transparent"
+            className={input}
           />
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="password" className="text-sm font-medium">
+          <label htmlFor="password" className={label}>
             Şifre
           </label>
           <input
@@ -84,23 +85,23 @@ function LoginForm() {
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-md border border-black/15 px-3 py-2 dark:border-white/15 dark:bg-transparent"
+            className={input}
           />
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-danger">{error}</p>}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-black px-3 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
+          className={`${btnPrimary} w-full`}
         >
           {loading ? "Giriş yapılıyor..." : "Giriş yap"}
         </button>
 
         <a
           href="/forgot-password"
-          className="block text-center text-sm text-black/60 hover:underline dark:text-white/60"
+          className="block text-center text-sm text-muted hover:underline"
         >
           Şifremi unuttum
         </a>

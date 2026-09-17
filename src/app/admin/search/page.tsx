@@ -1,6 +1,21 @@
+import Link from "next/link";
 import { getViewer, requireRole } from "@/lib/auth/viewer";
 import { createClient } from "@/lib/supabase/server";
 import { JumpToTenantButton } from "@/components/admin/JumpToTenantButton";
+import { AccountStatusBadge } from "@/components/admin/AccountStatusBadge";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Card, CardBody, CardHeader } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Badge } from "@/components/ui/Badge";
+import {
+  btnPrimary,
+  input,
+  table,
+  tableWrap,
+  td,
+  th,
+  trHover,
+} from "@/components/ui/styles";
 
 const ROLE_LABEL: Record<string, string> = {
   system_admin: "Sistem Admin",
@@ -10,6 +25,18 @@ const ROLE_LABEL: Record<string, string> = {
   ogrenci: "Öğrenci",
 };
 
+type Person = {
+  id: string;
+  full_name: string;
+  role: string;
+  status: string;
+  tenant: { id: string; name: string } | null;
+  student_profile: {
+    class_group: { name: string } | null;
+    branch: { name: string } | null;
+  } | null;
+};
+
 // Sadece system_admin: RLS bu rol için tenant_id filtresini kaldırıyor
 // (bkz. supabase/migrations/0001_init.sql is_system_admin()), yani buradaki
 // sorgular ekstra bir "tüm tenant'lar" parametresi olmadan zaten tüm
@@ -17,24 +44,27 @@ const ROLE_LABEL: Record<string, string> = {
 export default async function GlobalSearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; role?: string }>;
 }) {
   requireRole(await getViewer(), ["system_admin"]);
-  const { q } = await searchParams;
-  const query = q?.trim() ?? "";
+  const sp = await searchParams;
+  const query = sp.q?.trim() ?? "";
+  const roleFilter = sp.role ?? "";
 
   const supabase = await createClient();
 
   let tenantResults: { id: string; name: string; slug: string }[] = [];
-  let peopleResults: {
-    id: string;
-    full_name: string;
-    role: string;
-    status: string;
-    tenant: { id: string; name: string } | null;
-  }[] = [];
+  let peopleResults: Person[] = [];
 
   if (query.length >= 2) {
+    let peopleQuery = supabase
+      .from("user_account")
+      .select(
+        "id, full_name, role, status, tenant:tenant_id(id, name), student_profile(class_group:class_group_id(name), branch:branch_id(name))",
+      )
+      .ilike("full_name", `%${query}%`);
+    if (roleFilter) peopleQuery = peopleQuery.eq("role", roleFilter);
+
     const [tenantRes, peopleRes] = await Promise.all([
       supabase
         .from("tenant")
@@ -42,117 +72,151 @@ export default async function GlobalSearchPage({
         .ilike("name", `%${query}%`)
         .order("name")
         .limit(20),
-      supabase
-        .from("user_account")
-        .select("id, full_name, role, status, tenant:tenant_id(id, name)")
-        .ilike("full_name", `%${query}%`)
-        .order("full_name")
-        .limit(50)
-        .returns<
-          {
-            id: string;
-            full_name: string;
-            role: string;
-            status: string;
-            tenant: { id: string; name: string } | null;
-          }[]
-        >(),
+      peopleQuery.order("full_name").limit(100).returns<Person[]>(),
     ]);
     tenantResults = tenantRes.data ?? [];
     peopleResults = peopleRes.data ?? [];
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-lg font-semibold">Genel Arama</h1>
-      <p className="text-sm text-black/60 dark:text-white/60">
-        Tüm dershanelerde dershane adı, öğrenci, öğretmen veya rehberlik ismi
-        ara.
-      </p>
+    <>
+      <PageHeader
+        title="Genel Arama"
+        description="Tüm dershanelerde tek yerden ara: dershane adı, öğrenci, öğretmen veya rehberlik ismi. Sonuçtan doğrudan o dershanenin bağlamına geçebilirsin."
+      />
 
-      <form method="GET" className="flex gap-2">
+      <form method="GET" className="flex flex-wrap items-center gap-2">
         <input
-          type="text"
+          type="search"
           name="q"
           defaultValue={query}
-          placeholder="İsim ara..."
+          placeholder="Dershane veya kişi adı…"
           minLength={2}
-          className="w-full max-w-sm rounded-md border border-black/15 px-3 py-2 text-sm dark:border-white/15 dark:bg-transparent"
+          className={`${input} max-w-sm`}
         />
-        <button
-          type="submit"
-          className="rounded-md bg-black px-3 py-2 text-sm text-white dark:bg-white dark:text-black"
-        >
+        <select name="role" defaultValue={roleFilter} className={`${input} max-w-[12rem]`}>
+          <option value="">Tüm roller</option>
+          <option value="ogrenci">Öğrenci</option>
+          <option value="ogretmen">Öğretmen</option>
+          <option value="rehberlik">Rehberlik</option>
+          <option value="dershane_admin">Dershane Admin</option>
+        </select>
+        <button type="submit" className={btnPrimary}>
           Ara
         </button>
       </form>
 
-      {query.length > 0 && query.length < 2 && (
-        <p className="text-sm text-black/60 dark:text-white/60">
-          En az 2 karakter gir.
-        </p>
+      {query.length === 0 && (
+        <EmptyState
+          title="Aramaya başla"
+          description="En az 2 karakter yaz. Arama tüm dershaneleri kapsar — hangi dershanede olduğunu bilmene gerek yok."
+        />
+      )}
+
+      {query.length === 1 && (
+        <p className="text-sm text-muted">En az 2 karakter gir.</p>
       )}
 
       {query.length >= 2 && (
-        <div className="space-y-6">
-          <div>
-            <h2 className="mb-2 text-sm font-medium">
-              Dershaneler ({tenantResults.length})
-            </h2>
-            {tenantResults.length === 0 ? (
-              <p className="text-sm text-black/60 dark:text-white/60">
-                Eşleşme yok.
-              </p>
-            ) : (
-              <ul className="divide-y divide-black/10 text-sm dark:divide-white/10">
-                {tenantResults.map((t) => (
-                  <li
-                    key={t.id}
-                    className="flex items-center justify-between py-2"
-                  >
-                    <span>
-                      {t.name}{" "}
-                      <span className="text-black/50 dark:text-white/50">
-                        ({t.slug})
+        <div className="space-y-4">
+          <Card>
+            <CardHeader title={`Dershaneler (${tenantResults.length})`} />
+            <CardBody>
+              {tenantResults.length === 0 ? (
+                <p className="text-sm text-muted">Eşleşme yok.</p>
+              ) : (
+                <ul className="divide-y divide-border text-sm">
+                  {tenantResults.map((t) => (
+                    <li
+                      key={t.id}
+                      className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0"
+                    >
+                      <span>
+                        <span className="font-medium">{t.name}</span>{" "}
+                        <span className="font-mono text-xs text-muted">
+                          {t.slug}
+                        </span>
                       </span>
-                    </span>
-                    <JumpToTenantButton tenantId={t.id} />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                      <JumpToTenantButton tenantId={t.id} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardBody>
+          </Card>
 
-          <div>
-            <h2 className="mb-2 text-sm font-medium">
-              Kişiler ({peopleResults.length})
-            </h2>
+          <Card>
+            <CardHeader
+              title={`Kişiler (${peopleResults.length})`}
+              description={
+                peopleResults.length === 100
+                  ? "İlk 100 sonuç gösteriliyor — aramayı daraltabilirsin."
+                  : undefined
+              }
+            />
             {peopleResults.length === 0 ? (
-              <p className="text-sm text-black/60 dark:text-white/60">
-                Eşleşme yok.
-              </p>
+              <CardBody>
+                <p className="text-sm text-muted">Eşleşme yok.</p>
+              </CardBody>
             ) : (
-              <ul className="divide-y divide-black/10 text-sm dark:divide-white/10">
-                {peopleResults.map((p) => (
-                  <li
-                    key={p.id}
-                    className="flex items-center justify-between py-2"
-                  >
-                    <span>
-                      <span className="font-medium">{p.full_name}</span>{" "}
-                      <span className="text-black/50 dark:text-white/50">
-                        · {ROLE_LABEL[p.role] ?? p.role} · {p.tenant?.name ?? "?"} ·{" "}
-                        {p.status}
-                      </span>
-                    </span>
-                    {p.tenant && <JumpToTenantButton tenantId={p.tenant.id} />}
-                  </li>
-                ))}
-              </ul>
+              <div className={`${tableWrap} rounded-t-none border-x-0 border-b-0`}>
+                <table className={table}>
+                  <thead>
+                    <tr>
+                      <th className={th}>Ad Soyad</th>
+                      <th className={th}>Rol</th>
+                      <th className={th}>Dershane</th>
+                      <th className={th}>Sınıf</th>
+                      <th className={th}>Hesap</th>
+                      <th className={th}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {peopleResults.map((p) => (
+                      <tr key={p.id} className={trHover}>
+                        <td className={`${td} font-medium`}>
+                          {p.role === "ogrenci" ? (
+                            <Link
+                              href={`/admin/students/${p.id}`}
+                              className="hover:underline"
+                            >
+                              {p.full_name}
+                            </Link>
+                          ) : (
+                            p.full_name
+                          )}
+                        </td>
+                        <td className={td}>
+                          <Badge tone="brand">
+                            {ROLE_LABEL[p.role] ?? p.role}
+                          </Badge>
+                        </td>
+                        <td className={`${td} text-muted`}>
+                          {p.tenant?.name ?? "—"}
+                        </td>
+                        <td className={`${td} text-muted`}>
+                          {p.student_profile?.class_group?.name ?? "—"}
+                          {p.student_profile?.branch?.name
+                            ? ` · ${p.student_profile.branch.name}`
+                            : ""}
+                        </td>
+                        <td className={td}>
+                          <AccountStatusBadge status={p.status} />
+                        </td>
+                        <td className={`${td} text-right`}>
+                          {p.tenant && (
+                            <JumpToTenantButton tenantId={p.tenant.id} />
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
+          </Card>
         </div>
       )}
-    </div>
+    </>
   );
 }

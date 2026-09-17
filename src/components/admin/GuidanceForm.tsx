@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { btnPrimary, input, label } from "@/components/ui/styles";
 
 type ClassWithStudents = {
   id: string;
@@ -77,7 +78,7 @@ export function GuidanceForm({
   return (
     <form onSubmit={handleSubmit} className="max-w-md space-y-4">
       <div className="space-y-1">
-        <label htmlFor="fullName" className="text-sm font-medium">
+        <label htmlFor="fullName" className={label}>
           Ad soyad
         </label>
         <input
@@ -86,14 +87,14 @@ export function GuidanceForm({
           required
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
-          className="w-full rounded-md border border-black/15 px-3 py-2 dark:border-white/15 dark:bg-transparent"
+          className={input}
         />
       </div>
 
       <div className="space-y-3">
-        <span className="text-sm font-medium">Atanacak öğrenciler</span>
+        <span className={label}>Atanacak öğrenciler</span>
         {classes.length === 0 && (
-          <p className="text-sm text-black/50 dark:text-white/50">
+          <p className="text-sm text-muted">
             Henüz öğrenci yok.
           </p>
         )}
@@ -125,12 +126,12 @@ export function GuidanceForm({
         ))}
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
 
       <button
         type="submit"
         disabled={loading}
-        className="rounded-md bg-black px-3 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+        className={btnPrimary}
       >
         {loading ? "Kaydediliyor..." : "Kaydet"}
       </button>

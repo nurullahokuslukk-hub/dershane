@@ -23,7 +23,7 @@ export default async function RehberlikDashboardPage() {
   return (
     <AppShell fullName={account.full_name} roleLabel="Rehberlik">
       <h1 className="text-lg font-semibold">Öğrenci Listesi</h1>
-      <p className="mt-2 text-sm text-black/60 dark:text-white/60">
+      <p className="mt-2 text-sm text-muted">
         Atanmış öğrenciler burada listelenecek.
       </p>
     </AppShell>

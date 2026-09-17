@@ -2,7 +2,7 @@
 title: Doküman merkezi
 description: Projenin tüm belgelerine giriş noktası ve güncel durum özeti.
 status: active
-updated_at: 2026-09-15
+updated_at: 2026-09-17
 ---
 
 # Dershane Öğrenci Takip ve Erken Uyarı Sistemi — Doküman Merkezi
@@ -19,18 +19,24 @@ kullanıcı tarafından onaylandı (2026-09-15), `status: done`.
 Toplu kayıt/claim modeli: [decisions/0003-toplu-kayit-ve-claim-akisi.md](decisions/0003-toplu-kayit-ve-claim-akisi.md).
 
 **Kod durumu:** Auth (Supabase, claim akışı), rol bazlı yönlendirme, audit log,
-Sentry, sistem admin için genel arama hepsi çalışıyor. **Faz A (yönetim CRUD)
-ve Faz B (roster toplu içe aktarma) tamamlandı** — uçtan uca doğrulandı (bkz.
-STATE.md). Sadece CSV destekleniyor, Excel değil (bkz.
+Sentry, sistem admin için genel arama hepsi çalışıyor. **Faz A (yönetim CRUD),
+Faz B (roster toplu içe aktarma) ve Faz C (deneme sonucu toplu içe aktarma)
+tamamlandı** — uçtan uca doğrulandı (bkz. STATE.md). Admin paneli ortak bir
+tasarım sistemine taşındı (`src/components/ui/`, `globals.css` tokenları) ve
+öğrenci listesi/detayı eklendi. Sadece CSV destekleniyor, Excel değil (bkz.
 [decisions/0004-csv-only-import.md](decisions/0004-csv-only-import.md)).
+
+**⚠️ Bekleyen migration:** `supabase/migrations/0007_exam_integrity_and_indexes.sql`
+Supabase SQL Editor'da çalıştırılmalı. Ayrıca `0005`/`0006` numaraları depoda
+boş — bkz. STATE.md 2026-09-17 "Numaralandırma notu".
 
 **Faz 2 (Android) paralel olarak başladı — Codex geliştiriyor.** Native
 Android/Kotlin ([decisions/0005-android-native-kotlin.md](decisions/0005-android-native-kotlin.md)),
 detaylı brief: [phases/phase-2-android.md](phases/phase-2-android.md). Ayrı bir
 backend yazılmıyor — aynı Supabase projesine doğrudan bağlanıyor.
 
-Web tarafında sırada: Faz C (deneme sonucu toplu içe aktarma) → Faz D (rehberlik ekranında
-gösterme).
+Web tarafında sırada: **Faz D — rehberlik paneli** (atanmış öğrenci listesi,
+öğrenci profili, deneme sonuçları, dershane devam öz-bildirimi).
 Detaylı plan ve gerekçe: STATE.md 2026-09-16 girdisi. Kurulum:
 [guides/supabase-vercel-kurulum.md](guides/supabase-vercel-kurulum.md).
 

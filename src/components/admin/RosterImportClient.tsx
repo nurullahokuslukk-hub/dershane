@@ -12,8 +12,17 @@ import {
 } from "@/lib/import/roster-schema";
 import type { RowResult } from "@/lib/import/types";
 import { ImportPreviewTable } from "@/components/import/ImportPreviewTable";
+import { btnPrimary } from "@/components/ui/styles";
 
 type Mode = "ogrenci" | "ogretmen";
+
+function modeButton(active: boolean): string {
+  return `rounded-lg border px-3.5 py-1.5 text-sm transition-colors ${
+    active
+      ? "border-brand bg-brand-soft font-medium text-brand-soft-fg"
+      : "border-border text-muted hover:bg-surface-hover"
+  }`;
+}
 
 export function RosterImportClient({
   tenantId,
@@ -136,8 +145,8 @@ export function RosterImportClient({
 
   return (
     <div className="max-w-3xl space-y-6">
-      <h1 className="text-lg font-semibold">Roster Toplu İçe Aktar</h1>
-      <div className="space-y-1 rounded-md border border-black/10 p-4 text-sm dark:border-white/10">
+      <h1 className="text-xl font-semibold tracking-tight">Roster Toplu İçe Aktar</h1>
+      <div className="space-y-1.5 rounded-xl border border-border bg-surface p-4 text-sm">
         <p className="font-medium">Nasıl çalışır:</p>
         <p>
           <strong>1) İndir</strong> — aşağıdaki şablon, hangi bilgiyi hangi
@@ -165,11 +174,7 @@ export function RosterImportClient({
             setMode("ogrenci");
             resetRows();
           }}
-          className={`rounded-md border px-3 py-1.5 ${
-            mode === "ogrenci"
-              ? "border-black bg-black text-white dark:border-white dark:bg-white dark:text-black"
-              : "border-black/15 dark:border-white/15"
-          }`}
+          className={modeButton(mode === "ogrenci")}
         >
           Öğrenci
         </button>
@@ -179,11 +184,7 @@ export function RosterImportClient({
             setMode("ogretmen");
             resetRows();
           }}
-          className={`rounded-md border px-3 py-1.5 ${
-            mode === "ogretmen"
-              ? "border-black bg-black text-white dark:border-white dark:bg-white dark:text-black"
-              : "border-black/15 dark:border-white/15"
-          }`}
+          className={modeButton(mode === "ogretmen")}
         >
           Öğretmen
         </button>
@@ -196,18 +197,23 @@ export function RosterImportClient({
               ? "/templates/roster-ogrenci-sablon.csv"
               : "/templates/roster-ogretmen-sablon.csv"
           }
-          className="text-black/70 underline dark:text-white/70"
+          className="text-brand hover:underline"
         >
           Şablonu indir ({mode === "ogrenci" ? "öğrenci" : "öğretmen"})
         </a>
         <div>
-          <input type="file" accept=".csv" onChange={handleFileChange} />
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleFileChange}
+            className="text-sm text-muted file:mr-3 file:rounded-lg file:border file:border-border file:bg-surface file:px-3 file:py-1.5 file:text-sm file:text-foreground"
+          />
         </div>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
       {successMessage && (
-        <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-400">
+        <p className="rounded-lg bg-success-soft px-3 py-2 text-sm text-success">
           {successMessage} Doğrulama kodlarını{" "}
           <Link href="/admin/unclaimed" className="underline">
             Doğrulanmamış Hesaplar
@@ -232,7 +238,7 @@ export function RosterImportClient({
             type="button"
             onClick={handleSubmit}
             disabled={submitting}
-            className="rounded-md bg-black px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+            className={btnPrimary}
           >
             {submitting ? "İçe aktarılıyor..." : "Onayla ve İçe Aktar"}
           </button>

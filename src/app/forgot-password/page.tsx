@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { btnPrimary, input, label } from "@/components/ui/styles";
 
 // Ekran tanımı: docs/flows/web-common.md → "Ekran: Şifremi Unuttum"
 // Not: yalnızca e-posta destekler; telefon-only kullanıcılar dershane
@@ -43,18 +44,18 @@ export default function ForgotPasswordPage() {
     <main className="flex flex-1 items-center justify-center p-6">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm space-y-4 rounded-lg border border-black/10 p-6 dark:border-white/10"
+        className="w-full max-w-sm space-y-4 rounded-xl border border-border bg-surface p-6 shadow-[0_1px_2px_rgba(16,19,24,0.04)]"
       >
         <div>
           <h1 className="text-xl font-semibold">Şifremi Unuttum</h1>
-          <p className="text-sm text-black/60 dark:text-white/60">
+          <p className="text-sm text-muted">
             Telefon numarasıyla kayıtlıysan dershane yönetiminden şifre
             sıfırlama iste.
           </p>
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="email" className="text-sm font-medium">
+          <label htmlFor="email" className={label}>
             E-posta
           </label>
           <input
@@ -63,15 +64,15 @@ export default function ForgotPasswordPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-md border border-black/15 px-3 py-2 dark:border-white/15 dark:bg-transparent"
+            className={input}
           />
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-danger">{error}</p>}
 
         <button
           type="submit"
-          className="w-full rounded-md bg-black px-3 py-2 text-white dark:bg-white dark:text-black"
+          className={`${btnPrimary} w-full`}
         >
           Sıfırlama linki gönder
         </button>

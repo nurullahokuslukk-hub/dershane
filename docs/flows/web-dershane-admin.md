@@ -2,7 +2,7 @@
 title: "Akış: Web — Dershane Admin"
 description: Dershane Admin rolünün web panelindeki tüm ekranları ve akışı.
 status: in-progress
-updated_at: 2026-09-15
+updated_at: 2026-09-17
 ---
 
 # Akış: Web — Dershane Admin
@@ -16,14 +16,21 @@ tarafı), §13 (dershaneye özelleştirme).
 **Amaç:** Dershane admin'in giriş sonrası ilk gördüğü özet ekran.
 **Erişim:** Dershane Admin.
 
+**Durum:** Yazıldı (2026-09-17) — `/admin`.
+
 **Gösterilen veri:**
-- Toplam öğrenci sayısı, şube/sınıf sayısı
-- Bekleyen öğrenci onayı sayısı (rozet)
-- Öğretmen/rehberlik kullanıcı sayısı
+- Sayaç kartları: öğrenci, sınıf, şube, öğretmen, rehberlik, deneme
+- Doğrulanmamış hesap uyarısı + öğrencilerin kaçının hesabını aktifleştirdiği
+- Son denemeler (sonuç satırı sayısıyla), son işlemler (audit log)
+
+**Sistem Admin için:** henüz dershane seçilmediyse aynı ekran dershane
+listesini gösterir; "bu dershaneye geç" ile bağlam seçilir.
 
 **Aksiyonlar:**
-- Bekleyen onaylar rozetine tıkla → **Bekleyen Onaylar**
-- Sidebar üzerinden diğer ekranlara git
+- Doğrulanmamış hesap rozeti/kartı → **Doğrulanmamış Hesaplar**
+- Hızlı işlem: Roster Yükle / Deneme Sonucu Yükle
+- Sidebar üzerinden diğer ekranlara git (menü Genel/Kurum/Kişiler/Akademik/
+  Sistem başlıklarıyla gruplu)
 
 ## Ekran: Şube Listesi
 
@@ -64,9 +71,14 @@ sayısı.
 **Amaç:** Tüm öğrencileri (`student_profile`) görmek, filtrelemek.
 **Erişim:** Dershane Admin.
 
+**Durum:** Yazıldı (2026-09-17) — `/admin/students`.
+
 **Gösterilen veri:**
-- Ad soyad, sınıf/şube, durum (pending/active/suspended)
-- Filtre: şube, sınıf, durum
+- Ad soyad, sınıf, şube, doğum tarihi, hesap durumu
+  (`unclaimed`/`active`/`suspended` — bkz.
+  [decisions/0003-toplu-kayit-ve-claim-akisi.md](../decisions/0003-toplu-kayit-ve-claim-akisi.md))
+- İsimle arama (`ilike`) + sınıf filtresi, 50'şerli sunucu taraflı sayfalama
+  (liste yüz binlerce satıra çıkabilir, tümü tek seferde çekilmiyor)
 
 **Aksiyonlar:**
 - Bir öğrenciye tıkla → **Öğrenci Detayı**
@@ -74,22 +86,24 @@ sayısı.
 
 ## Ekran: Öğrenci Detayı (admin görünümü)
 
-**Amaç:** Bir öğrencinin temel bilgilerini yönetmek — **akademik veriler burada
-değil**, bu ekran sadece hesap/idari yönetim içindir (akademik detay için
-[web-rehberlik.md](web-rehberlik.md) veya [web-ogretmen.md](web-ogretmen.md)).
-**Erişim:** Dershane Admin.
+**Amaç:** Bir öğrencinin hesabını ve akademik özetini tek yerde görmek.
+Derinlemesine rehberlik görünümü (çalışma/telefon/görüşme sekmeleri) burada
+değil, [web-rehberlik.md](web-rehberlik.md)'dedir.
+**Erişim:** Dershane Admin, Sistem Admin.
+
+**Durum:** Yazıldı (2026-09-17) — `/admin/students/[id]`.
 
 **Gösterilen veri:**
-- Ad soyad, doğum tarihi, sınıf/şube, durum
-- Kayıtlı cihazlar (`student_device` listesi)
-- Auth identifier (e-posta/telefon) — salt okunur
+- Hesap kartı: durum, giriş bilgisi (auth identifier), doğrulama kodu
+  (yalnızca `unclaimed` ise), doğum tarihi, kayıt tarihi
+- Rehberlik ataması: bu öğrenciyi hangi rehberlik kullanıcıları takip ediyor
+- Deneme sonuçları: denemeye göre gruplanmış ders bazlı D/Y/B/net tablosu +
+  deneme başına toplam net (en yeni deneme üstte)
 
-**Aksiyonlar:**
-- Sınıf/şube değiştir
-- Durumu askıya al/aktif et
-- Şifre sıfırla (telefon-only kullanıcılar için, bkz.
-  [decisions/0001-auth-yontemi.md](../decisions/0001-auth-yontemi.md))
-- Cihaz kaydını sil (öğrenci cihaz değiştirdiyse, PDF §30)
+**Henüz yazılmadı (ileride):**
+- Kayıtlı cihazlar (`student_device`) — Faz 2 (Android) veri üretmeye
+  başlayınca anlamlı olacak
+- Sınıf/şube değiştirme, durumu askıya alma, şifre sıfırlama
 
 ## Ekran: Doğrulanmamış Hesaplar
 
@@ -128,6 +142,73 @@ için `user_account` (`unclaimed`) + `student_profile`/`teacher_class_assignment
 - Şablon indir (öğrenci/öğretmen ayrı şablon)
 - CSV yükle → önizleme (hatalı satırlar diğerlerini engellemez)
 - Onayla → toplu oluşturma → Doğrulanmamış Hesaplar ekranına link
+
+## Ekran: Denemeler
+
+**Amaç:** Deneme sınavlarını (`mock_exam`) oluşturmak ve sonuç yüklenmiş
+olanları görmek. Sonuçlar bir denemeye bağlandığı için sonuç yüklemeden önce
+deneme kaydının var olması gerekir.
+**Erişim:** Dershane Admin, Sistem Admin.
+
+**Durum:** Yazıldı (2026-09-17) — `/admin/exams`, `/admin/exams/new`.
+
+**Gösterilen veri:** Deneme adı, tarih, tür (TYT/AYT/LGS…), yüklenmiş sonuç
+satırı sayısı.
+
+**Aksiyonlar:**
+- Yeni deneme (ad + tarih + tür) → **Denemeler**
+- Bir denemeye tıkla → **Deneme Detayı**
+
+### Ekran: Deneme Detayı
+
+**Durum:** Yazıldı (2026-09-17) — `/admin/exams/[id]`.
+
+**Gösterilen veri:**
+- Ders bazlı dershane ortalaması (o denemedeki ortalama netler)
+- Öğrenci × ders net matrisi + öğrenci başına toplam net, isme göre sıralı
+
+**Bilinçli olarak yok:** sıralama/başarı puanı, otomatik risk skoru, renkli
+"kırmızı öğrenci" işaretlemesi. Sadece sayı gösteriliyor — PDF §16 ve
+AGENTS.md "gözetim değil rehberlik" kuralı.
+
+## Ekran: Deneme Sonucu İçe Aktar
+
+**Amaç:** Bir denemenin ders bazlı sonuçlarını toplu yüklemek. Sonuç girişi
+öğretmen başına tek tek değil, admin tarafından deneme başına dosya
+yüklenerek yapılıyor (kullanıcıyla konuşulan karar, bkz. STATE.md).
+**Erişim:** Dershane Admin, Sistem Admin.
+
+**Durum:** Yazıldı (2026-09-17) — `/admin/import/exam-results`. Roster içe
+aktarmayla aynı altyapı (CSV + `ImportPreviewTable`).
+
+**Şablon sütunları:** `ad_soyad, sinif_adi, ders, dogru, yanlis, bos, net`
+
+**Kurallar:**
+- **Net dosyadan olduğu gibi alınır, yeniden hesaplanmaz.** Ceza katsayısı
+  sınav türüne/kuruma göre değişiyor; burada tekrar türetmek ikinci (ve
+  muhtemelen yanlış) bir doğruluk kaynağı yaratırdı.
+- Eşleştirme öğrenci adına göre; aynı isimde birden fazla öğrenci varsa
+  satır-içi seçim kutusu çıkar (`sinif_adi` verilmişse önce onunla daraltılır).
+- Aynı dosyadaki tekrar eden (öğrenci + ders) satırları önizlemede hata olarak
+  işaretlenir — yoksa upsert sessizce birini ezerdi.
+- Aynı dosya düzeltilip tekrar yüklenirse çift kayıt oluşmaz:
+  `(mock_exam_id, student_id, subject)` üzerinde upsert.
+- Sunucu tarafı `mockExamId` ve her `studentId`'nin tenant'a ait olduğunu
+  yeniden doğrular (istemcide yapılan eşleştirmeye güvenilmez).
+- Tek istekte en fazla 5000 satır, 500'lük parçalar halinde yazılır.
+
+## Ekran: Genel Arama (yalnızca Sistem Admin)
+
+**Amaç:** Hangi dershanede olduğunu bilmeden kişi/dershane aramak.
+**Erişim:** Sistem Admin.
+
+**Durum:** Yazıldı (2026-09-17) — `/admin/search`.
+
+**Gösterilen veri:** Eşleşen dershaneler; eşleşen kişiler (ad, rol, dershane,
+sınıf/şube, hesap durumu). Role göre süzme.
+
+**Aksiyonlar:** "Bu dershaneye geç" → aktif dershane bağlamını değiştirir.
+Öğrenci sonucuna tıkla → **Öğrenci Detayı**.
 
 ## Ekran: Öğretmen Listesi
 

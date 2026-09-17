@@ -3,6 +3,7 @@ import { getViewer, requireRole } from "@/lib/auth/viewer";
 import { getActiveTenantId } from "@/lib/tenant-context";
 import { createClient } from "@/lib/supabase/server";
 import { ClassForm } from "@/components/admin/ClassForm";
+import { NoTenantNotice } from "@/components/admin/NoTenantNotice";
 
 export default async function EditClassPage({
   params,
@@ -15,13 +16,7 @@ export default async function EditClassPage({
     "system_admin",
   ]);
   const tenantId = await getActiveTenantId(viewer);
-  if (!tenantId) {
-    return (
-      <p className="text-sm text-black/60 dark:text-white/60">
-        Önce üstteki menüden bir dershane seç.
-      </p>
-    );
-  }
+  if (!tenantId) return <NoTenantNotice />;
 
   const supabase = await createClient();
   const [{ data: classGroup }, { data: branches }] = await Promise.all([
@@ -38,7 +33,7 @@ export default async function EditClassPage({
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-semibold">Sınıf Düzenle</h1>
+      <h1 className="text-xl font-semibold tracking-tight">Sınıf Düzenle</h1>
       <ClassForm
         classId={classGroup.id}
         tenantId={tenantId}
