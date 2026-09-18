@@ -128,6 +128,9 @@ bilgi tamamen öğrencinin beyanıdır.
 **Hata/uç durumlar:**
 - İnternet yoksa → yerel kuyruğa alınır (diğer kayıtlarla aynı mekanizma).
 - "Hayır" seçilirse saat alanları gizlenir; DB'de de bu bir CHECK constraint.
+- Telefon yeniden başlarsa → yalnızca öğrenci daha önce hatırlatmayı açtıysa,
+  kullanıcı kilidi açıldıktan sonra yaklaşık 20.00 için tekrar planlanır.
+  Telefon kapalı kaldığı zaman için veri üretilmez; konum bilgisi istenmez.
 
 ### Ekran: Çalışma Kaydı Ekle
 

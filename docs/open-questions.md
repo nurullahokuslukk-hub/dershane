@@ -24,7 +24,9 @@ olarak kaydet (şablon: [decisions/0000-template.md](decisions/0000-template.md)
       (bkz. [phases/phase-4-ai-layer.md](phases/phase-4-ai-layer.md)).
 - [ ] **Fiyatlandırma** — öğrenci başına / aktif öğrenci / paket bazlı / aylık / yıllık
       modellerinden hangisi, hangi rakamlarla.
-- [ ] **Bildirim sisteminin ayrıntıları** — push/SMS/e-posta, kime, hangi tetikleyicide.
+- [ ] **Bildirim sisteminin ayrıntıları** — Android uygulamasında öğrencinin kendi çıkış
+      saatini eklemesi için 20.00 civarı yerel hatırlatıcı kararlaştırıldı (ADR 0006).
+      Push/SMS/e-posta, diğer alıcılar ve tetikleyiciler hâlâ netleşmeli.
 
 ## Bu listeye ne zaman soru eklenir?
 

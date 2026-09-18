@@ -46,6 +46,7 @@ yarn-error.log*
 # mobil (Faz 2 — native Android/Kotlin, bkz. decisions/0005)
 android/local.properties
 android/.gradle/
+android/.kotlin/
 android/*/build/
 android/.idea/
 *.keystore

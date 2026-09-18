@@ -88,6 +88,13 @@ Veri alanlarının tam şeması: [data-model.md](../data-model.md) (`daily_check
 - `student_device` tablosuna cihaz kaydı (`device_identifier` — Android
   `Settings.Secure.ANDROID_ID` kullanılabilir, gerçek IMEI/seri no gerekmiyor,
   gizlilik için gereksiz bir tanımlayıcı toplanmamalı).
+- **Telefon yeniden başlatıldığında:** uygulama `BOOT_COMPLETED` sonrasında yalnızca
+  WorkManager işlerini yeniden planlar. Telefon kapalıyken kullanım olmadığı için
+  yapay boşluk/veri üretilmez; kullanıcı cihazı açıp kilidi açtıktan sonra bir
+  sonraki iş, son başarılı senkronizasyon noktasından itibaren UsageStats
+  özetini okur. Receiver doğrudan ağ çağrısı yapmaz ve Usage Access iznini
+  kendiliğinden açamaz. Android uygulaması kısıtlanmış durumdaysa boot yayını
+  gecikebilir; uygulama bir sonraki açılışta işleri yine kontrol eder.
 
 ## Offline kuyruk (PDF §10, §30)
 
@@ -98,6 +105,10 @@ alınır, her birine bir `client_record_id` atanır. Bağlantı geldiğinde
 `client_record_id` ile idempotent upsert yapacak şekilde tasarlı — Android
 tarafının tek sorumluluğu her kayda **bir kere** id üretmek ve tekrar
 denemelerde aynı id'yi kullanmak.
+- **Dayanıklılık:** cihaz yeniden başlatıldığında, uygulama güncellendiğinde veya
+  saat dilimi/sistem saati değiştiğinde receiver yalnızca önceden izin verilmiş
+  yerel hatırlatıcıyı ve ağ kısıtlı senkron işini yeniden planlar. Ağ aktarımı
+  receiver içinde değil WorkManager'da yapılır.
 
 ## Faz 2 alt-adımları (önerilen sıra)
 
@@ -136,4 +147,6 @@ oturumun aynı satıra tarihli girdi eklemesi) önler.
 - [ ] Offline kayıt + senkronizasyon + idempotency test edilmiş (aynı kayıt iki kez
       gönderilirse çift kayıt oluşmuyor)
 - [ ] Telefon kullanım verisi sadece izin verilen minimal alanları topluyor
+- [ ] Yeniden başlatma / uygulama güncellemesi / saat dilimi değişiminde işlerin
+      yeniden planlandığı; kapalı cihaz süresi için veri üretilmediği test edildi
 - [ ] Play Store'a yayınlanmaya hazır (imzalama, gizlilik politikası linki, vs.)

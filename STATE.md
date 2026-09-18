@@ -12,6 +12,18 @@ En yeni girdi en üstte. Format için [AGENTS.md](AGENTS.md) → "STATE.md giri�
 
 ---
 
+## 2026-09-18 — Faz 2 Android ilk teslimi web rehberlik akışıyla birleştirildi
+
+Native Kotlin/Compose öğrenci uygulaması; Supabase Auth doğrulaması, günlük
+dershane devam öz-bildirimi, 20.00 civarı yerel çıkış hatırlatması, Room/KSP
+tabanlı idempotent offline-kuyruk altyapısı ve yeniden başlatma/uygulama
+güncellemesi/saat dilimi değişiminde WorkManager işlerini yeniden planlayan
+receiver ile depoya alındı. `0005_android_student_rls.sql` ve canlı şemayla
+uyumlu `0006_daily_dershane_presence.sql` artık repo içinde; web rehberlik
+ekranı ile aynı tabloyu kullanır. Android derlemesi başarıyla doğrulandı.
+Sıradaki iş: ekran kayıtlarını offline kuyruğa bağlamak ve UsageStatsManager
+telefon kullanım toplama akışını tamamlamak.
+
 ## 2026-09-17 — Faz D: Rehberlik paneli + "Dershane düzeni" (devam öz-bildirimi)
 
 Rehberlik paneli stub'dan çıkarıldı: `/rehberlik` (atanmış öğrenci listesi, son

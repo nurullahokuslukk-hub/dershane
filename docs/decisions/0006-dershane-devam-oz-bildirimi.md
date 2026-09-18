@@ -61,7 +61,7 @@ girmeyi unutabilir, ya da olduğundan farklı yazabilir. Bu yüzden:
 - Yeni tablo: `daily_dershane_presence`
   (bkz. `supabase/migrations/0006_daily_dershane_presence.sql`,
   [data-model.md](../data-model.md)).
-- Günde bir kayıt: `UNIQUE (tenant_id, student_id, presence_date)`.
+- Günde bir kayıt: `UNIQUE (tenant_id, student_id, attendance_date)`.
   Offline kuyruk için ayrıca `UNIQUE (tenant_id, client_record_id)` — diğer
   cihaz kaynaklı tablolarla aynı idempotency kuralı.
 - Rehberlik öğrenci profilinde **"Dershane düzeni"** bölümü
@@ -71,7 +71,7 @@ girmeyi unutabilir, ya da olduğundan farklı yazabilir. Bu yüzden:
 
 ## KVKK notu
 
-Toplanan alanlar: tarih, gitti/gitmedi, giriş saati, çıkış saati, serbest not.
-Konum yok. Erişen: öğrencinin kendisi, kendisine atanmış rehberlik kullanıcısı,
+Toplanan alanlar: tarih, gitti/gitmedi, giriş saati, çıkış saati, kayıt kaynağı
+ve idempotency kimliği. Konum ve serbest not yok. Erişen: öğrencinin kendisi, kendisine atanmış rehberlik kullanıcısı,
 dershane admini. Saklama süresi Faz 3'te (KVKK sertleştirmesi) diğer
 kategorilerle birlikte kararlaştırılacak.

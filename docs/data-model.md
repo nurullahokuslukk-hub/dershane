@@ -174,6 +174,8 @@ yeni değer), `client_record_id`.
 `UNIQUE (tenant_id, client_record_id)` — offline kuyruk idempotency'si.
 `CHECK (attended or (arrived_at is null and departed_at is null))` —
 "gitmedim" denmişse saat olamaz.
+"Gittim" denmişse `arrived_at` zorunludur; `departed_at` boş olabilir ama varsa
+giriş saatinden önce olamaz.
 
 **RLS istisnası:** bu tabloda generic `tenant_isolation` politikası
 kullanılmaz. Android doğrudan Supabase'e bağlandığı için öğrencinin yalnızca
