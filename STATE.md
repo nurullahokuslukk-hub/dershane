@@ -12,6 +12,16 @@ En yeni girdi en üstte. Format için [AGENTS.md](AGENTS.md) → "STATE.md giri�
 
 ---
 
+## 2026-09-18 — Android test öğrenci hesabı ve canlı giriş doğrulandı
+
+`başarı` dershanesinin `a` şubesi / `12` sınıfında etkin bir Android test
+öğrencisi oluşturuldu. Anon anahtarının yerel Android ayarında bir karakter
+eksik olduğu tespit edilip kullanıcı tarafından verilen güncel public anahtarla
+`android/local.properties` içinde düzeltildi (dosya git dışı). Aynı anonim
+istemciyle e-posta-şifre oturumu, `ogrenci` rolü, etkin hesap durumu ve RLS
+üzerinden yalnızca kendi `student_profile` kaydına erişim doğrulandı; güncel
+debug APK emülatöre yeniden yüklendi.
+
 ## 2026-09-18 — Faz 2 Android ilk teslimi web rehberlik akışıyla birleştirildi
 
 Native Kotlin/Compose öğrenci uygulaması; Supabase Auth doğrulaması, günlük
